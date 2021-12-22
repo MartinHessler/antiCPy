@@ -8,18 +8,18 @@ long_description = 'The ``antiCPy`` package provides tools to monitor destabiliz
 
 setup(
     name='antiCPy',
-    version= antiCPy.__version__,
-    url='',
+    version=antiCPy.__version__,
+    url='https://github.com/MartinHessler/antiCPy',
     license='GPL',
     author='Martin Heßler',
     author_email='m_hess23@wwu.de',
     install_requires=['numpy', 'matplotlib', 'scipy', 'numba', 'emcee'],
-    scripts = [],
+    scripts=[],
     packages=find_packages(),
     description='A package that provides tools to estimate resilience and noise level of a system as well as extrapolate possible transition times.',
-    long_description = long_description,
+    long_description=long_description,
     platforms='any',
-    keywords = "time series analysis, critical transitions, leading indicators",
+    keywords="time series analysis, critical transitions, leading indicators",
     classifiers = [
         'Programming Language :: Python',
         'Development Status :: 4 - Beta',
