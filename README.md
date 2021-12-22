@@ -8,3 +8,12 @@ flexibility and also access to the derived interim results.
 
 Up to now the package is accompanied by the preprint
 paper [Bayesian on-line anticipation of critical transitions](https://arxiv.org/abs/2108.05179)
+
+Install
+=======
+
+The package can be installed via
+
+```
+pip install antiCPy
+```
