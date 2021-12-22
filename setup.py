@@ -27,5 +27,5 @@ setup(
         'Operating System :: OS Independent',
         'Topic :: Scientific/Engineering :: Information Analysis',
         'Topic :: Scientific/Engineering :: Physics'
-    ]
+        ]
     )
