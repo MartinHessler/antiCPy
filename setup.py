@@ -24,7 +24,8 @@ setup(
         'Programming Language :: Python',
         'Development Status :: 4 - Beta',
         'Natural Language :: English',
-        'Operating System :: OS independent',
-        'Topic :: time series analysis :: critical transitions',
-        ]
+        'Operating System :: OS Independent',
+        'Topic :: Scientific/Engineering :: Information Analysis',
+        'Topic :: Scientific/Engineering :: Physics'
+    ]
     )
