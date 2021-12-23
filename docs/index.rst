@@ -15,11 +15,10 @@ You can find the `package on github <https://github.com/MartinHessler/antiCPy>`_
 Install
 =======
 
-The package can be installed via
+The package can be installed via ::
 
-```
-pip install antiCPy
-```
+   pip install antiCPy
+
 
 .. toctree::
    :maxdepth: 3
