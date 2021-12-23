@@ -10,7 +10,7 @@ Up to now, there is still a lot to do...
 
 The antiCPy package provides an easy applicable toolbox to estimate the drift slope :math:`\hat{\zeta}` of a Langevin equation as an early warning signal and extrapolate an early warning signal trend to find the probable transition horizon based on the current data information. The package aims to provide simple applicable methods and guarantee high flexibility and also access to the derived interim results.
 
-You can find the [package on github](https://github.com/MartinHessler/antiCPy).
+You can find the `package on github <https://github.com/MartinHessler/antiCPy>`_.
 
 Install
 =======
