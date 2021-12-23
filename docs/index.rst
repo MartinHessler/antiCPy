@@ -1,5 +1,5 @@
 .. antiCPy documentation master file, created by
-sphinx-quickstart on Mon Dec 13 10:57:34 2021.
+   sphinx-quickstart on Mon Dec 13 10:57:34 2021.
 
 
 Welcome to antiCPy's documentation!
