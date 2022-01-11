@@ -1,7 +1,7 @@
 antiCPy
 =======
 
-The antiCPy package provides an easy applicable toolbox to estimate the drift slope :math:`\hat{\zeta}` of a Langevin
+The antiCPy package provides an easy applicable toolbox to estimate the drift slope <img src="https://latex.codecogs.com/svg.image?\hat{\zeta}" title="\hat{\zeta}" /> of a Langevin
 equation as an early warning signal and extrapolate an early warning signal trend to find the probable transition
 horizon based on the current data information. The package aims to provide simple applicable methods and guarantee high
 flexibility and also access to the derived interim results.
