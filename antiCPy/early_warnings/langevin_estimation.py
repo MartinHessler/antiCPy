@@ -544,7 +544,7 @@ class LangevinEstimation:
         in order to facilitate customized plots.
 
         :param window_size: Time window size.
-        :rtype window_size: int
+        :type window_size: int
         :param window_shift: The rolling time window is shifted about `window_shift` data points.
         :type window_shift: int
         :param slope_grid: Array on which the drift slope kernel density estimate is evaluated.
