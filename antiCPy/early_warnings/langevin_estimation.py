@@ -544,7 +544,7 @@ class LangevinEstimation:
         in order to facilitate customized plots.
 
         :param window_size: Time window size.
-        :rytpe window_size: int
+        :rtype window_size: int
         :param window_shift: The rolling time window is shifted about `window_shift` data points.
         :type window_shift: int
         :param slope_grid: Array on which the drift slope kernel density estimate is evaluated.
@@ -602,6 +602,7 @@ class LangevinEstimation:
                         estimate :math:\hat{\zeta}`, the noise level :math:`\hat{\sigma}` and the
                         noise kernel density is shown together with the time series and rolling
                         windows. Default is `False`.
+
                         .. warning::
 
                             It makes use of global variables to incorporate the movie animation tool in the class.
