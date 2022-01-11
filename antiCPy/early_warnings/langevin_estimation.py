@@ -602,8 +602,8 @@ class LangevinEstimation:
                         estimate :math:\hat{\zeta}`, the noise level :math:`\hat{\sigma}` and the
                         noise kernel density is shown together with the time series and rolling
                         windows. Default is `False`.
-
                         .. warning::
+
                             It makes use of global variables to incorporate the movie animation tool in the class.
                             The `create_animation` parameter is only intended to easily reconstruct
                             the plot results of the related publication. In other circumstances it should not
