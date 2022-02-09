@@ -114,9 +114,11 @@ class CPSegmentFit:
 	:type transition_time: float
 	:param upper_uncertainty_bound: Attribute which contains the time at which the upper uncertainty
 		boundary crosses zero.
+
 	:type upper_uncertainty_bound: float
 	:param lower_uncertainty_bound: Attribute which contains the time at which the lower uncertainty
 		boundary crosses zero.
+
 	:type lower_uncertainty_bound: float
 	'''
 	def __init__(self, x_data, y_data, number_expected_changepoints, num_MC_cp_samples, predict_up_to = None, z_array_size = 100):
