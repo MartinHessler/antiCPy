@@ -24,7 +24,7 @@ in your publications for which you used antiCPy.
 Related publications
 ====================
 Up to now the package is accompanied by the preprint
-paper [Bayesian on-line anticipation of critical transitions](https://arxiv.org/abs/2108.05179)
+paper [Bayesian on-line anticipation of critical transitions](https://arxiv.org/abs/2108.05179).
 
 Install
 =======
