@@ -85,19 +85,26 @@ class CPSegmentFit:
 	:type Q_inverse: Three-dimensional (`num_MC_cp_samples`, `number_expected_changepoints + 2`,
 		`number_expected_changepoints + 2`) numpy array of floats.
 
-	:param Res_E: Attribute contains the residues :math:`R(E)=d^T d - \\sum_k (u_k^Td)^2` of each possible change point configuration :math:`E`.
-	:type Res_E: One-dimensional (`num_MC_cp_samples`) numpy array.
-	:param marginal_likelihood_pdf:
-	:type marginal_likelihood_pdf: One-dimensional (`num_MC_cp_samples`) numpy array.
-	:param marginal_log_likelihood:
-	:type marginal_log_likelihood: One-dimensional (`num_MC_cp_samples`) numpy array.
-	:param marginal_cp_pdf:
-	:type marginal_cp_pdf: One-dimensional (`num_MC_cp_samples`) numpy array.
-	:param prob_cp:
-	:type prob_cp: One-dimensional (`num_MC_cp_samples`) numpy array.
+	:param Res_E: Attribute contains the residues :math:`R(E)=d^T d - \\sum_k (u_k^Td)^2` of each possible
+		change point configuration :math:`E`.
+	:type Res_E: One-dimensional (``num_MC_cp_samples``) numpy array.
+	:param marginal_likelihood_pdf: Attribute that contains the marginal likelihood of each change point
+		configuration.
+	:type marginal_likelihood_pdf: One-dimensional (``num_MC_cp_samples``) numpy array of float.
+	:param marginal_log_likelihood: Attribute that contains the marginal natural logarithmic likelihood
+		of each change point configuration.
+	:type marginal_log_likelihood: One-dimensional (``num_MC_cp_samples``) numpy array of float.
+	:param marginal_cp_pdf: Attribute that contains the normalized a posteriori probability of the computed
+		change point configurations. The normalization is valid for the grid of ``x_data``.
+
+	:type marginal_cp_pdf: One-dimensional (``num_MC_cp_samples``) numpy array of float.
+	:param prob_cp: Attribute that contains the probability
+		:math:`P(E|\underline{d}, \underline{x}, \mathcal{I})` of a given change point configuration :math:`E`.
+
+	:type prob_cp: One-dimensional (``num_MC_cp_samples``) numpy array of float.
 	:param D_array: Attribute that contains the fitted values in the interval from the beginning of the time series
 		up to ``prediction_horizon``.
-	:type D_array: One-dimensional numpy array of floats.
+	:type D_array: One-dimensional numpy array of float.
 	:param DELTA_D2_array: Attributes that contains the variances of the fitted values in ``D_array``.
 	:type DELTA_D2_array: One-dimensional numpy array of floats.
 	:param transition_time: Attribute which contains the time at which the extrapolated function crosses zero.
@@ -264,7 +271,7 @@ class CPSegmentFit:
 
 	def calculate_marginal_cp_pdf(self):
 		'''
-		Calculates the marginal posterior `marginal_cp_pdf` of each possible configuration of
+		Calculates the marginal posterior ``marginal_cp_pdf`` of each possible configuration of
 		change point positions and normalizes the resulting probability density function.
 		Therefore, the normalization constant is determined by integration of the resulting pdf
 		via the simpson rule.
@@ -277,7 +284,7 @@ class CPSegmentFit:
 
 	def calculate_prob_cp(self):
 		'''
-		Calculates the probability `prob_cp` of each configuration of change point positions.
+		Calculates the probability ``prob_cp``  of each configuration of change point positions.
 
 		'''
 
@@ -298,7 +305,7 @@ class CPSegmentFit:
 		for m in range(self.n_MC_samples):
 			for k in range(self.n_cp + 1):
 				if self.MC_cp_configurations[m,k] <= z <= self.MC_cp_configurations[m,k + 1]:
-					b[m,k:k+2] = [(self.MC_cp_configurations[m,k+1] - z) / (self.MC_cp_configurations[m,k+1] - self.MC_cp_configurations[m,k]), (z - self.MC_cp_configurations[m,k]) / (self.MC_cp_configurations[m,k+1] - self.MC_cp_configurations[m,k])]
+					b[m, k:k+2] = [(self.MC_cp_configurations[m, k+1] - z) / (self.MC_cp_configurations[m,k+1] - self.MC_cp_configurations[m,k]), (z - self.MC_cp_configurations[m,k]) / (self.MC_cp_configurations[m,k+1] - self.MC_cp_configurations[m,k])]
 		DELTA_D2 = 0
 		D = 0
 		for m in range(self.n_MC_samples):
