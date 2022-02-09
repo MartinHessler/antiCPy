@@ -88,20 +88,20 @@ class CPSegmentFit:
 	:param Res_E: Attribute contains the residues :math:`R(E)=d^T d - \\sum_k (u_k^Td)^2` of each possible
 		change point configuration :math:`E`.
 
-	:type Res_E: One-dimensional (``num_MC_cp_samples``) numpy array.
+	:type Res_E: One-dimensional (``num_MC_cp_samples``) numpy array of floats.
 	:param marginal_likelihood_pdf: Attribute that contains the marginal likelihood of each change point
 		configuration.
 
-	:type marginal_likelihood_pdf: One-dimensional (``num_MC_cp_samples``) numpy array of float.
+	:type marginal_likelihood_pdf: One-dimensional (``num_MC_cp_samples``) numpy array of floats.
 	:param marginal_log_likelihood: Attribute that contains the marginal natural logarithmic likelihood
 		of each change point configuration.
 
-	:type marginal_log_likelihood: One-dimensional (``num_MC_cp_samples``) numpy array of float.
+	:type marginal_log_likelihood: One-dimensional (``num_MC_cp_samples``) numpy array of floats.
 	:param marginal_cp_pdf: Attribute that contains the normalized a posteriori probability of the computed
 		change point configurations. The normalization is valid for the grid of ``x_data``.
 
 	:type marginal_cp_pdf: One-dimensional (``num_MC_cp_samples``) numpy array of float
-	:param prob_cp: Attribute that contains the probability :math:`P(E \\vert \\underline{d}, \\underline{x}, \\mathcal{I})` of a given change point configuration :math:`E`.
+	:param prob_cp: Attribute that contains the probability :math:`P(E \\vert \\underline{d}, \\\underline{x}, \\mathcal{I})` of a given change point configuration :math:`E`.
 
 	:type prob_cp: One-dimensional (``num_MC_cp_samples``) numpy array of float.
 	:param D_array: Attribute that contains the fitted values in the interval from the beginning of the time series
