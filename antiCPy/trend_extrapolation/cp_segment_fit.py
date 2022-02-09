@@ -101,7 +101,7 @@ class CPSegmentFit:
 		change point configurations. The normalization is valid for the grid of ``x_data``.
 
 	:type marginal_cp_pdf: One-dimensional (``num_MC_cp_samples``) numpy array of float
-	:param prob_cp: Attribute that contains the probability :math:`P(E \\vert d, x, I)` of a given change point configuration :math:`E`.
+	:param prob_cp: Attribute that contains the probability :math:`P(E \\vert \underline{d}, \underline{x}, I)` of a given change point configuration :math:`E`.
 
 	:type prob_cp: One-dimensional (``num_MC_cp_samples``) numpy array of float.
 	:param D_array: Attribute that contains the fitted values in the interval from the beginning of the time series
