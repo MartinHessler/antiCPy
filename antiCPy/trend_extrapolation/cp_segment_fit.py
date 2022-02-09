@@ -10,9 +10,9 @@ class CPSegmentFit:
 	of a certain number of change points.
 
 	:param x_data: Given data on the x-axis. Saved in attribute `x`.
-	:type x_data: One-dimensional numpy array of floats.
+	:type x_data: One-dimensional numpy array of float.
 	:param y_data: Given data on the y-axis. Saved in attribute `y`.
-	:type y_data: One-dimensional numpy array of floats.
+	:type y_data: One-dimensional numpy array of float.
 	:param number_expected_changepoints: Number of expected change points in the fit.
 	:type number_expected_changepoints: int
 	:param num_MC_cp_samples: Maximum number of MC summands that shall be incorporated in order to
@@ -27,7 +27,7 @@ class CPSegmentFit:
 	:param cp_prior_pdf: Attribute that contains the flat prior probability of the considered change point
 		configurations.
 
-	:type cp_prior_pdf: One-dimensional numpy array of floats.
+	:type cp_prior_pdf: One-dimensional numpy array of float.
 	:param num_cp_configs: Attribute of the number of possible change point configurations.
 	:type num_cp_configs: int
 	:param exact_sum_control: If this attribute is `True` then the exact sum over all possible change
@@ -87,12 +87,15 @@ class CPSegmentFit:
 
 	:param Res_E: Attribute contains the residues :math:`R(E)=d^T d - \\sum_k (u_k^Td)^2` of each possible
 		change point configuration :math:`E`.
+
 	:type Res_E: One-dimensional (``num_MC_cp_samples``) numpy array.
 	:param marginal_likelihood_pdf: Attribute that contains the marginal likelihood of each change point
 		configuration.
+
 	:type marginal_likelihood_pdf: One-dimensional (``num_MC_cp_samples``) numpy array of float.
 	:param marginal_log_likelihood: Attribute that contains the marginal natural logarithmic likelihood
 		of each change point configuration.
+
 	:type marginal_log_likelihood: One-dimensional (``num_MC_cp_samples``) numpy array of float.
 	:param marginal_cp_pdf: Attribute that contains the normalized a posteriori probability of the computed
 		change point configurations. The normalization is valid for the grid of ``x_data``.
@@ -104,6 +107,7 @@ class CPSegmentFit:
 	:type prob_cp: One-dimensional (``num_MC_cp_samples``) numpy array of float.
 	:param D_array: Attribute that contains the fitted values in the interval from the beginning of the time series
 		up to ``prediction_horizon``.
+
 	:type D_array: One-dimensional numpy array of float.
 	:param DELTA_D2_array: Attributes that contains the variances of the fitted values in ``D_array``.
 	:type DELTA_D2_array: One-dimensional numpy array of floats.
