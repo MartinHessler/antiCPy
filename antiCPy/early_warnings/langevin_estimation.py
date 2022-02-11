@@ -10,33 +10,33 @@ import emcee
 
 class LangevinEstimation:
     '''
-    The `Langevin_estimation` class includes tools to estimate a polynomial Langevin equation with various
+    The ``Langevin_estimation`` class includes tools to estimate a polynomial Langevin equation with various
     drift and diffusion terms and provides the drift slope :math:`\zeta` as a resilience measure.
 
     :param data: A one dimensional numpy array containing the times series to analyse.
-    :type data: One dimensional numpy array of floats.
+    :type data: One dimensional numpy array of floats
     :param time: A one dimensional numpy array containing the time samples of the time series data.
-    :type time: One dimensional numpy array of floats.
-    :param drift_model: Defines the drift model. Default is `3rd order polynomial`.
-                        Additionally, a `first order polynomial` can be chosen.
+    :type time: One dimensional numpy array of floats
+    :param drift_model: Defines the drift model. Default is ``'3rd order polynomial'``.
+                        Additionally, a ``'first order polynomial'`` can be chosen.
     :type drift_model: str
-    :param drift_model: Defines the diffusion model. Default is `constant`.
-                        Additionally, a `first order polynomial` can be chosen.
+    :param drift_model: Defines the diffusion model. Default is ``'constant'``.
+                        Additionally, a ``'first order polynomial'`` can be chosen.
     :type drift_model: str
     :param prior_type: Defines the used prior to calculate the posterior distribution of the data.
-                        Default is `Non-informative linear and Gaussian Prior`. A flat prior can be chosen
-                        with `Flat Prior`.
+                        Default is ``'Non-informative linear and Gaussian Prior'``. A flat prior can be chosen
+                        with ``'Flat Prior'``.
     :type drift_type: str
     :param prior_range: Customize the prior range of the estimated polynomial parameters :math:`\theta_i`
                         starting for :math:`\theta_0` in row with index 0 and upper limits in the first column.
-                        Default is `None` which means prior ranges of -50 to 50 for the drift parameters and
+                        Default is ``None`` which means prior ranges of -50 to 50 for the drift parameters and
                         0 to 50 for constant diffusion terms.
-    :type prior_range: Two-dimensional numpy array of floats. Optional.
+    :type prior_range: Two-dimensional numpy array of floats, optional
     :param scales: Two tailed percentiles to create credibility bands of the estimated measures.
-    :type scales: One-dimensional numpy array with two entries.
+    :type scales: One-dimensional numpy array with two float entries
     :param theta: Array that contains the estimated drift and diffusion parameters with drift and ending with diffusion.
                     The lowest order is mentioned first.
-    :type theta: One-dimensional numpy array.
+    :type theta: One-dimensional numpy array of floats
     :param ndim: Total number of parameters to estimate.
     :type ndim: int
     :param nwalkers: Number of MCMC chains.
@@ -51,49 +51,49 @@ class LangevinEstimation:
     :type dt: float
     :param drift_slope: Array with the current drift slope estimate in the 0th component.
                         Component 1, 2 and 3, 4 contain the upper and lower bound of the credibility intervals
-                        defined by the `scales` variable.
-    :type drift_slope: One-dimensional numpy array of floats.
+                        defined by the ``scales`` variable.
+    :type drift_slope: One-dimensional numpy array of floats
     :param noise_level_estimate: Array with the noise level estimate in the 0th component.
                         Component 1, 2 and 3, 4 contain the upper and lower bound of the credibility intervals
-                        defined by the `scales` variable.
-    :type noise_level_estimate: One-dimenional numpy array of floats.
+                        defined by the ``scales`` variable.
+    :type noise_level_estimate: One-dimenional numpy array of floats
     :param loop_range: Array with the start indices of the time array for each rolled time window.
-    :type loop_range: One-dimensional (`data_size - window_size / window_shift + 1`) numpy array of integers.
+    :type loop_range: One-dimensional (``data_size - window_size / window_shift + 1``) numpy array of integers
     :param window_size: Size of rolling windows.
     :type window_size: int
-    :param data_window: Array that contains data of a certain interval of the dataset in `data`.
-    :type data_window: One-dimensional numpy array of floats.
-    :param time_window: Array that contains time of a certain interval of the dataset in `data`.
-    :type time_window: One-dimensional numpy array of floats.
+    :param data_window: Array that contains data of a certain interval of the dataset in ``data``.
+    :type data_window: One-dimensional numpy array of floats
+    :param time_window: Array that contains time of a certain interval of the dataset in ``data``.
+    :type time_window: One-dimensional numpy array of floats
     :param increments: Array that contains the increments from :math:`t` to :math:`t+1`.
-    :type increments: One-dimensional numpy array of floats.
+    :type increments: One-dimensional numpy array of floats
     :param joint_samples: Array that contains drawed parameter samples from their joint posterior probability
-                         density function that is estimated from the data in the current `data_window`.
-    :type joint_samples: Two-dimensional (`ndim, num_of_joint_samples`) numpy array of floats.
-    :param slope_estimates: Estimates of the drift slope on the current `data_window`.
-    :type slope_estimates: One-dimensional numpy array of floats.
-    :param fixed_point_estimate: Fixed point estimate calculated as the mean of the current `data_window`.
+                         density function that is estimated from the data in the current ``data_window``.
+    :type joint_samples: Two-dimensional (``ndim, num_of_joint_samples``) numpy array of floats
+    :param slope_estimates: Estimates of the drift slope on the current ``data_window``.
+    :type slope_estimates: One-dimensional numpy array of floats
+    :param fixed_point_estimate: Fixed point estimate calculated as the mean of the current ``data_window``.
     :type fixed_point_estimate: float
     :param starting_guesses: Array that contains the initial guesses of the MCMC sampling.
-    :type starting_guesses: Two-dimensional numpy array of floats.
+    :type starting_guesses: Two-dimensional numpy array of floats
     :param theta_array: Array that contains the drift and diffusion parameters sampled with MCMC.
-    :type theta_array: Two-dimensional numpy array of floats.
+    :type theta_array: Two-dimensional numpy array of floats
     :param slope_storage: Array that contains the drift slope estimates :math:`\hat{\zeta}`
                         of the rolling windows. The columns encode each rolling window with the drift
                         slope estimate :math:`\hat{\zeta}` in the 0th row and in rows 1,2 and 3,4
-                        the upper and lower bound of the credibility intervals defined by `scales`.
-    :type slope_storage: Two-dimensional (5, `loop_range.size`) numpy array of floats.
+                        the upper and lower bound of the credibility intervals defined by ``scales``.
+    :type slope_storage: Two-dimensional (``5, loop_range.size``) numpy array of floats
     :param noise_level_storage:  Array that contains the noise level estimates :math:`\hat{\sigma}`
                         of the rolling windows. The columns encode each rolling window with the noise level
                         estimate :math:`\hat{\sigma}` in the 0th row and in rows 1,2 and 3,4
-                        the upper and lower bound of the credibility intervals defined by `scales`.
-    :type noise_level_storage: Two-dimensional (5, `loop_range.size`) numpy array of floats.
-    :param slope_kernel_density_obj: Kernel density object of `scipy.gaussian_kde(...)` of the slope
+                        the upper and lower bound of the credibility intervals defined by ``scales``.
+    :type noise_level_storage: Two-dimensional (``5, loop_range.size``) numpy array of floats
+    :param slope_kernel_density_obj: Kernel density object of ``scipy.gaussian_kde(...)`` of the slope
                         posterior created with a Gaussian kernel and a bandwidth computed by silverman's rule.
-    :type slope_kernel_density_obj: `scipy` kernel density object of the `scipy.gaussian_kde(...)` function.
-    :param noise_kernel_density_obj: Kernel density object of `scipy.gaussian_kde(...)` of the noise level
+    :type slope_kernel_density_obj: ``scipy`` kernel density object of the ``scipy.gaussian_kde(...)`` function.
+    :param noise_kernel_density_obj: Kernel density object of ``scipy.gaussian_kde(...)`` of the noise level
                         posterior created with a Gaussian kernel and a bandwidth computed by silverman's rule.
-    :type noise_level_density_obj: `scipy` kernel density object of the `scipy.gaussian_kde(...)` function.
+    :type noise_level_density_obj: ``scipy`` kernel density object of the ``scipy.gaussian_kde(...)`` function.
     '''
 
     def __init__(self, data, time, drift_model='3rd order polynomial', diffusion_model='constant',
@@ -163,7 +163,7 @@ class LangevinEstimation:
     def calc_D1(theta, data, drift_model):
         '''
         Returns the drift parameterized by a first or third order polynomial for input data.
-        Static function in order to speed up computation time via `numba.jit(nopython = True)`.
+        Static function in order to speed up computation time via ``numba.jit(nopython = True)``.
         '''
 
         if drift_model == '3rd order polynomial':
@@ -173,7 +173,7 @@ class LangevinEstimation:
 
     def D1(self):
         '''
-        Calls the static `calc_D1` function and returns its value.
+        Calls the static ``calc_D1`` function and returns its value.
         '''
 
         return self.calc_D1(self.theta, self.data_window[:-1], self.drift_model)
@@ -183,7 +183,7 @@ class LangevinEstimation:
     def calc_D2(theta, data, diffusion_model):
         '''
         Returns the diffusion parameterized by a constant or first order polynomial for input data.
-        Static function in order to speed up computation time via `numba.jit(nopython = True)`.
+        Static function in order to speed up computation time via ``numba.jit(nopython = True)``.
         '''
 
         if diffusion_model == 'constant':
@@ -193,17 +193,17 @@ class LangevinEstimation:
 
     def D2(self):
         '''
-        Calls the static `calc_D2` function and returns its value.
+        Calls the static ``calc_D2`` function and returns its value.
         '''
         return self.calc_D2(self.theta, self.data_window[:-1], self.diffusion_model)
 
     def log_prior(self):
         '''
         Returns the logarithmic prior probability for a given set of parameters based on the short time
-        propagator depending on the drift and diffusion models and the given `prior_range` of the
-        parameters `theta`. A flat prior for the parameters apart from restriction to positive constant
+        propagator depending on the drift and diffusion models and the given ``prior_range`` of the
+        parameters ``theta``. A flat prior for the parameters apart from restriction to positive constant
         diffusion and a non-informative prior for linear parts and Gaussian priors for higher orders are
-        implemented. The standard deviation of the Gaussian priors is given by the `scales` variable.
+        implemented. The standard deviation of the Gaussian priors is given by the ``scales`` variable.
         '''
 
         if self.drift_model == '3rd order polynomial' and self.diffusion_model == 'constant':
@@ -276,8 +276,8 @@ class LangevinEstimation:
 
     def declare_MAP_starting_guesses(self, nwalkers=None, nsteps=None):
         '''
-        Declare the maximum a posterior (MAP) starting guesses for a MCMC sampling with `nwalkers`
-        and `nsteps`.
+        Declare the maximum a posterior (MAP) starting guesses for a MCMC sampling with ``nwalkers``
+        and ``nsteps``.
         '''
         if nwalkers != None and nsteps != None:
             self.nwalkers = nwalkers
@@ -297,12 +297,12 @@ class LangevinEstimation:
 
     def compute_posterior_samples(self, print_AC_tau, ignore_AC_error, thinning_by, print_progress):
         '''
-        Compute the `theta_array` with :math:`nwalkers \cdot nsteps` Markov Chain Mone Carlo samples.
-        If `ignore_AC_error = False` the calculation will terminate with error if
+        Compute the ``theta_array`` with :math:`nwalkers \cdot nsteps` Markov Chain Mone Carlo samples.
+        If ``ignore_AC_error = False`` the calculation will terminate with error if
         the autocorrelation of the sampled chains is to high compared to the chain length.
         Otherwise the highest autocorrelation length will be used to thin the sampled chains.
-        In order to run tests in shorter time you can set "ignore_AC_error = True" and
-        define a `thinning_by` n steps. If `print_AC_tau = True` the autocorrelation lengths of the
+        In order to run tests in shorter time you can set ``ignore_AC_error = True`` and
+        define a ``thinning_by`` n steps. If ``print_AC_tau = True`` the autocorrelation lengths of the
         sampled chains is printed.
         '''
         print('Calculate posterior samples')
@@ -377,7 +377,7 @@ class LangevinEstimation:
     def animation(self, i, slope_grid, noise_grid, nwalkers, nsteps, nburn, n_joint_samples, n_slope_samples,
                   n_noise_samples, cred_percentiles, print_AC_tau, ignore_AC_error, thinning_by, print_progress):
         '''
-        Function that is called iteratively by the `matplotlib.animation.FuncAnimation(...)` tool
+        Function that is called iteratively by the ``matplotlib.animation.FuncAnimation(...)`` tool
         to generate an animation of the rolling window scan of a time series. The time series, the rolling
         windows, the time evolution of the drift slope estimate :math:`\hat{\zeta}` and the noise level
         estimate :math:`\hat{\sigma}` and its posterior probality density is shown in the animation.
@@ -430,17 +430,17 @@ class LangevinEstimation:
                               ignore_AC_error=False, thinning_by=60, print_progress=False):
         '''
         Calculates the drift slope estimate :math:`\hat{\zeta}` and the noise level :math:`\hat{\sigma}`
-        from the MCMC sampled parameters of a Langevin model for a given `window_size` and given `window_shift`.
-        In the course of the computations the parameters `joint_samples`, a `noise_kernel_density_obj`,
-        a `slope_kernel_density_obj`, the `drift_slope` with credibility intverals, the `noise_level` with
+        from the MCMC sampled parameters of a Langevin model for a given ``window_size`` and given ``window_shift``.
+        In the course of the computations the parameters ``joint_samples``, a ``noise_kernel_density_obj``,
+        a ``slope_kernel_density_obj``, the ``drift_slope`` with credibility intverals, the ``noise_level`` with
         credibility intervals and in case of a third order polynomial drift the estimated `fixed_point_estimate`
         of the window will be stored.
 
         :param slope_grid: Array on which the drift slope kernel density estimate is evaluated.
-        :type slope_grid: One-dimensional numpy array of floats.
+        :type slope_grid: One-dimensional numpy array of floats
         :param noise_grid: Array on which the noise level kernel density estimate is evaluated.
-        :type noise_grid: One-dimensional numpy array of floats.
-        :param nwalkers: Number of walkers that are initialized for the MCMC sampling via the package `emcee`.
+        :type noise_grid: One-dimensional numpy array of floats
+        :param nwalkers: Number of walkers that are initialized for the MCMC sampling via the package ``emcee``.
                         Default is 50.
         :type nwalkers: int
         :param nsteps: Length of the sampled MCMC chains. Default is 10000.
@@ -461,23 +461,23 @@ class LangevinEstimation:
                         Default is 50000.
         :type n_noise_samples: int
         :param cred_percentiles: Two entries to define the percentiles of the calculated credibility bands
-                        of the estimated parameters. Default is `numpy.array([16,1])`.
-        :type cred_percentiles: One-dimensional numpy array of integers.
-        :param print_AC_tau: If `True` the estimated autocorrelation lengths of the Markov chains is shown.
-                        The maximum length is used for thinning of the chains. Default is `False`.
-        :type prind_AC_tau: Boolean
-        :param ignore_AC_error: If `True` the autocorrelation lengths of the Markov chains is not estimated
+                        of the estimated parameters. Default is ``numpy.array([16,1])``.
+        :type cred_percentiles: One-dimensional numpy array of integers
+        :param print_AC_tau: If ``True`` the estimated autocorrelation lengths of the Markov chains is shown.
+                        The maximum length is used for thinning of the chains. Default is ``False``.
+        :type prind_AC_tau: bool
+        :param ignore_AC_error: If ``True`` the autocorrelation lengths of the Markov chains is not estimated
                         and thus, it is not checked whether the chains are too short to give an reliable
                         autocorrelation estimate. This avoids error interruption of the procedure, but
                         can lead to unreliable results if the chains are too short. The option should
                         be chosen in order to save computation time, e.g. when debugging your code
-                        with short Markov chains. Default is `False`.
-        :type ignore_AC_error: Boolean
-        :param thinning_by: If `ignore_AC_error = True` the chains are thinned by `thinning_by`. Every
-                        `thinning_by`-th data point is stored. Default is 60.
+                        with short Markov chains. Default is ``False``.
+        :type ignore_AC_error: bool
+        :param thinning_by: If ``ignore_AC_error = True`` the chains are thinned by ``thinning_by``. Every
+                        ``thinning_by``-th data point is stored. Default is 60.
         :type thinning_by: int
-        :param print_progress: If `True` the progress of the MCMC sampling is shown. Default is `False`.
-        :type print_progress: Boolean
+        :param print_progress: If ``True`` the progress of the MCMC sampling is shown. Default is ``False``.
+        :type print_progress: bool
         '''
 
         self.data_window = np.roll(self.data, shift=- self.window_shift)[:self.window_size]
@@ -533,9 +533,9 @@ class LangevinEstimation:
                                              animation_title='', mark_critical_point=None,
                                              mark_noise_level=None):
         '''
-        Performs an automated window scan with defined `window_shift` over the whole time series. In each
+        Performs an automated window scan with defined ``window_shift`` over the whole time series. In each
         window the drift slope and noise level estimates with corresponding credibility bands are computed
-        and saved in the `slope_storage` and the `noise_level_storage`. It can also be used to create an
+        and saved in the ``slope_storage`` and the ``noise_level_storage``. It can also be used to create an
         animation of the sliding window approach plotting the time series, the moving window, and the
         time evolution of the drift slope estimates :math:`\hat{\zeta}`, the noise level :math:`\hat{\sigma}`
         and the noise kernel density estimate. The start indices of the shifted windows is also saved
@@ -543,13 +543,13 @@ class LangevinEstimation:
 
         :param window_size: Time window size.
         :type window_size: int
-        :param window_shift: The rolling time window is shifted about `window_shift` data points.
+        :param window_shift: The rolling time window is shifted about ``window_shift`` data points.
         :type window_shift: int
         :param slope_grid: Array on which the drift slope kernel density estimate is evaluated.
-        :type slope_grid: One-dimensional numpy array of floats.
+        :type slope_grid: One-dimensional numpy array of floats
         :param noise_grid: Array on which the noise level kernel density estimate is evaluated.
-        :type noise_grid: One-dimensional numpy array of floats.
-        :param nwalkers: Number of walkers that are initialized for the MCMC sampling via the package `emcee`.
+        :type noise_grid: One-dimensional numpy array of floats
+        :param nwalkers: Number of walkers that are initialized for the MCMC sampling via the package ``emcee``.
                         Default is 50.
         :type nwalkers: int
         :param nsteps: Length of the sampled MCMC chains. Default is 10000.
@@ -570,56 +570,56 @@ class LangevinEstimation:
                         Default is 50000.
         :type n_noise_samples: int
         :param cred_percentiles: Two entries to define the percentiles of the calculated credibility bands
-                        of the estimated parameters. Default is `numpy.array([16,1])`.
-        :type cred_percentiles: One-dimensional numpy array of integers.
-        :param print_AC_tau: If `True` the estimated autocorrelation lengths of the Markov chains is shown.
-                        The maximum length is used for thinning of the chains. Default is `False`.
-        :type prind_AC_tau: Boolean
-        :param ignore_AC_error: If `True` the autocorrelation lengths of the Markov chains is not estimated
+                        of the estimated parameters. Default is ``numpy.array([16,1])``.
+        :type cred_percentiles: One-dimensional numpy array of integers
+        :param print_AC_tau: If ``True`` the estimated autocorrelation lengths of the Markov chains is shown.
+                        The maximum length is used for thinning of the chains. Default is ``False``.
+        :type prind_AC_tau: bool
+        :param ignore_AC_error: If ``True`` the autocorrelation lengths of the Markov chains is not estimated
                         and thus, it is not checked whether the chains are too short to give an reliable
                         autocorrelation estimate. This avoids error interruption of the procedure, but
                         can lead to unreliable results if the chains are too short. The option should
                         be chosen in order to save computation time, e.g. when debugging your code
-                        with short Markov chains. Default is `False`.
-        :type ignore_AC_error: Boolean
-        :param thinning_by: If `ignore_AC_error = True` the chains are thinned by `thinning_by`. Every
-                        `thinning_by`-th data point is stored. Default is 60.
+                        with short Markov chains. Default is ``False``.
+        :type ignore_AC_error: bool
+        :param thinning_by: If ``ignore_AC_error == True`` the chains are thinned by ``thinning_by``. Every
+                        ``thinning_by``-th data point is stored. Default is 60.
         :type thinning_by: int
-        :param print_progress: If `True` the progress of the MCMC sampling is shown. Default is `False`.
-        :type print_progress: Boolean
-        :param slope_save_name: Name of the file in which the `slope_storage` array will be saved. Default is
-                        `default_save_slopes`.
-        :type slope_save_name: string
-        :param  noise_level_save_name: Name of the file in which the `noise_level_storage` array will
-                        be saved. Default is `default_save_noise`.
-        :type noise_level_save_name: string
-        :param save: If `True` the `slope_storage` and the `noise_level_storage` arrays are saved in the
-                        end of the scan in an .npy file. Default is `True`.
-        :type save: Boolean
-        :param create_animation: If `True` an automated animation of the time evolution of the drift slope
+        :param print_progress: If ``True`` the progress of the MCMC sampling is shown. Default is ``False``.
+        :type print_progress: bool
+        :param slope_save_name: Name of the file in which the ``slope_storage`` array will be saved. Default is
+                        ``default_save_slopes``.
+        :type slope_save_name: str
+        :param  noise_level_save_name: Name of the file in which the ``noise_level_storage`` array will
+                        be saved. Default is ``default_save_noise``.
+        :type noise_level_save_name: str
+        :param save: If ``True`` the ``slope_storage`` and the ``noise_level_storage`` arrays are saved in the
+                        end of the scan in an `.npy` file. Default is ``True``.
+        :type save: bool
+        :param create_animation: If ``True`` an automated animation of the time evolution of the drift slope
                         estimate :math:\hat{\zeta}`, the noise level :math:`\hat{\sigma}` and the
                         noise kernel density is shown together with the time series and rolling
-                        windows. Default is `False`.
+                        windows. Default is ``False``.
 
                         .. warning::
 
                             It makes use of global variables to incorporate the movie animation tool in the class.
-                            The `create_animation` parameter is only intended to easily reconstruct
+                            The ``create_animation`` parameter is only intended to easily reconstruct
                             the plot results of the related publication. In other circumstances it should not
                             be used in order to avoid conflicts with the global variable names.
 
-        :type create_animation: Boolean
-        :param ani_save_name: If `create_animation = True` the animation is saved in a .mp4 file with this name.
-                        Default is `default_animation_name`.
-        :type ani_save_name: string
+        :type create_animation: bool
+        :param ani_save_name: If ``create_animation = True`` the animation is saved in a `.mp4` file with this name.
+                        Default is ``default_animation_name``.
+        :type ani_save_name: str
         :param animation_title: A title can be given to the animation.
-        :type animation_title: string
-        :param mark_critical_point: A red dotted vertical line is shown at time `mark_critical_point`.
-                        Default is `None`.
+        :type animation_title: str
+        :param mark_critical_point: A red dotted vertical line is shown at time ``mark_critical_point``.
+                        Default is ``None``.
         :type mark_critical_point: float
-        :param mark_noise_level: A green dotted line is shown at the noise level `mark_noise_level` in the
+        :param mark_noise_level: A green dotted line is shown at the noise level ``mark_noise_level`` in the
                         noise kernel density plot and the time evolution plot of the noise level.
-                        Default is `None`.
+                        Default is ``None``.
         :type mark_noise_level: float
         '''
         self.window_size = window_size
