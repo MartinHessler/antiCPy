@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/440811484.svg)](https://zenodo.org/badge/latestdoi/440811484)
+
 antiCPy
 =======
 
