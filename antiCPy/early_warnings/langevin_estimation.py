@@ -522,7 +522,7 @@ class LangevinEstimation:
         self.noise_level_estimate[3] = noise_credibility_percentiles[0]
         self.noise_level_estimate[4] = noise_credibility_percentiles[1]
 
-    def perform_driftslope_noise_window_scan(self, window_size, window_shift, slope_grid, noise_grid,
+    def perform_resilience_scan(self, window_size, window_shift, slope_grid, noise_grid,
                                              nwalkers=50, nsteps=10000, nburn=200, n_joint_samples=50000,
                                              n_slope_samples=50000, n_noise_samples=50000,
                                              cred_percentiles=np.array([16, 1]), print_AC_tau=False,
