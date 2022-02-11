@@ -6,7 +6,7 @@ from itertools import combinations
 
 class CPSegmentFit:
 	'''
-	The `CP_segment_fit` class contains tools to perform a Bayesian segmential fit under the assumption
+	The ``CP_segment_fit`` class contains tools to perform a Bayesian segmential fit under the assumption
 	of a certain number of change points.
 
 	:param x_data: Given data on the x-axis. Saved in attribute ``x``.
