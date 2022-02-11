@@ -9,109 +9,109 @@ class CPSegmentFit:
 	The `CP_segment_fit` class contains tools to perform a Bayesian segmential fit under the assumption
 	of a certain number of change points.
 
-	:param x_data: Given data on the x-axis. Saved in attribute `x`.
-	:type x_data: One-dimensional numpy array of float.
-	:param y_data: Given data on the y-axis. Saved in attribute `y`.
-	:type y_data: One-dimensional numpy array of float.
+	:param x_data: Given data on the x-axis. Saved in attribute ``x``.
+	:type x_data: One-dimensional numpy array of floats
+	:param y_data: Given data on the y-axis. Saved in attribute ``y``.
+	:type y_data: One-dimensional numpy array of floats
 	:param number_expected_changepoints: Number of expected change points in the fit.
 	:type number_expected_changepoints: int
 	:param num_MC_cp_samples: Maximum number of MC summands that shall be incorporated in order to
-		extrapolate the fit. Saved in attribute `n_MC_samples`.
+		extrapolate the fit. Saved in attribute ``n_MC_samples``
 
 	:type num_MC_cp_samples: int
 	:param n_MC_samples: Attribute contains the number of MC summands of the performed extrapolation
 		of the fit. It is exact, whenever the number of possible change point
-		configurations is smaller than `num_MC_cp_samples`.
+		configurations is smaller than ``num_MC_cp_samples``
 
 	:type n_MC_samples: int
 	:param cp_prior_pdf: Attribute that contains the flat prior probability of the considered change point
 		configurations.
 
-	:type cp_prior_pdf: One-dimensional numpy array of float.
+	:type cp_prior_pdf: One-dimensional numpy array of floats
 	:param num_cp_configs: Attribute of the number of possible change point configurations.
 	:type num_cp_configs: int
-	:param exact_sum_control: If this attribute is `True` then the exact sum over all possible change
+	:param exact_sum_control: If this attribute is ``True`` then the exact sum over all possible change
 		point configurations will be computed in order to extrapolate the fit.
 		If it is `False`, the given maximum number ``num_MC_cp_samples`` of summands is
 		smaller than the number of all possible change point configurations and the sum
 		is performed as an approximative sum over `num_MC_cp_samples` randomly chosen
 		change point configurations.
-	:type exact_sum_control: Boolean
+	:type exact_sum_control: bool
 	:type num_MC_cp_samples: int
-	:param predict_up_to: Defines the x-horizon of the extrapolation of the fit. Default is `None`,
+	:param predict_up_to: Defines the x-horizon of the extrapolation of the fit. Default is ``None``,
 		since it depends on the time scale of the given problem. It is saved in the
-		attribute `prediction_horizon`.
+		attribute ``prediction_horizon``.
 
 	:type predict_up_to: float
-	:param d: Attribute that contains the given `y_data`.
-	:type d: One-dimensional numpy array of floats.
-	:param x: Attribute that contains the given `x_data`.
-	:type x: One-dimensional numpy array of floats.
+	:param d: Attribute that contains the given ``y_data``.
+	:type d: One-dimensional numpy array of floats
+	:param x: Attribute that contains the given ``x_data``.
+	:type x: One-dimensional numpy array of floats
 	:param A_matrix: Attribute that contains the coefficients of the linear segments for the considered
 		change point configurations.
 
-	:type A_matrix: Three-dimensional (`num_MC_cp_samples`, `x_data.size`, `number_expected_changepoints` + 2)
-		numpy array of floats.
+	:type A_matrix: Three-dimensional (``num_MC_cp_samples``, ``x_data.size``, ``number_expected_changepoints + 2``)
+		numpy array of floats
 
-	:param A_dim: Contains the dimensions of the `A_matrix`.
-	:type A_dim: One-dimensional numpy array.
-	:param N: Attribute that contains the data size of the input `x_data` and `y_data`.
+	:param A_dim: Contains the dimensions of the ``A_matrix``.
+	:type A_dim: One-dimensional numpy array of floats
+	:param N: Attribute that contains the data size of the input ``x_data`` and ``y_data``.
 	:type N: int
-	:param n_cp: Attribute that contains the `number_expected_changepoints`.
+	:param n_cp: Attribute that contains the ``number_expected_changepoints``.
 	:type n_cp: int
 	:param MC_cp_configurations: Attribute that contains all possible change point configurations under the given assumptions and amount of data.
-	:type MC_cp_configurations: Two-dimensional (`num_MC_cp_samples`, `number_expected_changepoints + 2`)
-		numpy array of floats.
+	:type MC_cp_configurations: Two-dimensional (``num_MC_cp_samples``, ``number_expected_changepoints + 2``)
+		numpy array of floats
 
 	:param f0: Attribute that defines a matrix of mean design ordinates. Each row corresponds to a vector
 		of a specific configuration of change point positions.
 
-	:type f0: Two-dimensional (num_MC_cp_samples, number_expected_changepoints + 2) numpy array of floats.
-	:param x_start: Attribute contains the start value of `x_data` / `x`.
+	:type f0: Two-dimensional (``num_MC_cp_samples``, ``number_expected_changepoints + 2``) numpy array of floats
+	:param x_start: Attribute contains the start value of ``x_data`` / ``x``.
 	:type x_start: float
-	:param x_end: Attribute contains the end value of `x_data` / `x`.
+	:param x_end: Attribute contains the end value of ``x_data`` / ``x``.
 	:type x_end: float
 	:param prediction_horizon: Attribute in which the upper limit of the extrapolation x-horizon is saved.
 	:type prediction_horizon: float
 	:param Q_matrix: Attribute that contains the matrices :math:`Q=A^{T}A` of the considered change point
 		configurations.
 
-	:type Q_matrix: Three-dimensional (`num_MC_cp_samples`, `number_expected_changepoints + 2`,
-		`number_expected_changepoints + 2`) numpy array of floats
+	:type Q_matrix: Three-dimensional (``num_MC_cp_samples``, ``number_expected_changepoints + 2``,
+		``number_expected_changepoints + 2``) numpy array of floats
 
 	:param Q_inverse: Attribute that contains the inverse Q_matrices of each considered change point
 		configuration.
 
-	:type Q_inverse: Three-dimensional (`num_MC_cp_samples`, `number_expected_changepoints + 2`,
-		`number_expected_changepoints + 2`) numpy array of floats.
+	:type Q_inverse: Three-dimensional (``num_MC_cp_samples``, ``number_expected_changepoints + 2``,
+		``number_expected_changepoints + 2``) numpy array of floats
 
 	:param Res_E: Attribute contains the residues :math:`R(E)=d^T d - \\sum_k (u_k^Td)^2` of each possible
 		change point configuration :math:`E`.
 
-	:type Res_E: One-dimensional (``num_MC_cp_samples``) numpy array of floats.
+	:type Res_E: One-dimensional (``num_MC_cp_samples``) numpy array of floats
 	:param marginal_likelihood_pdf: Attribute that contains the marginal likelihood of each change point
 		configuration.
 
-	:type marginal_likelihood_pdf: One-dimensional (``num_MC_cp_samples``) numpy array of floats.
+	:type marginal_likelihood_pdf: One-dimensional (``num_MC_cp_samples``) numpy array of floats
 	:param marginal_log_likelihood: Attribute that contains the marginal natural logarithmic likelihood
 		of each change point configuration.
 
-	:type marginal_log_likelihood: One-dimensional (``num_MC_cp_samples``) numpy array of floats.
+	:type marginal_log_likelihood: One-dimensional (``num_MC_cp_samples``) numpy array of floats
 	:param marginal_cp_pdf: Attribute that contains the normalized a posteriori probability of the computed
 		change point configurations. The normalization is valid for the grid of ``x_data``.
 
-	:type marginal_cp_pdf: One-dimensional (``num_MC_cp_samples``) numpy array of float
+	:type marginal_cp_pdf: One-dimensional (``num_MC_cp_samples``) numpy array of floats
 	:param prob_cp: Attribute that contains the
 		probability :math:`P(E \\vert \\underline{d}, \\underline{x}, \\mathcal{I})` of a given change
 		point configuration :math:`E`.
 
-	:type prob_cp: One-dimensional (``num_MC_cp_samples``) numpy array of float.
+	:type prob_cp: One-dimensional (``num_MC_cp_samples``) numpy array of floats
 	:param D_array: Attribute that contains the fitted values in the interval from the beginning of the time series
 		up to ``prediction_horizon``.
 
-	:type D_array: One-dimensional numpy array of float.
+	:type D_array: One-dimensional numpy array of floats
 	:param DELTA_D2_array: Attributes that contains the variances of the fitted values in ``D_array``.
-	:type DELTA_D2_array: One-dimensional numpy array of floats.
+	:type DELTA_D2_array: One-dimensional numpy array of floats
 	:param transition_time: Attribute which contains the time at which the extrapolated function crosses zero.
 	:type transition_time: float
 	:param upper_uncertainty_bound: Attribute which contains the time at which the upper uncertainty
@@ -177,14 +177,14 @@ class CPSegmentFit:
 
 	def initialize_MC_cp_configurations(self, print_sum_control = False):
 		'''
-		Defines the array `MC_cp_configurations` of all possible change point configurations including start
-		and end `x` if the exact sum is computed. Otherwise it creates an approximate set of random change
+		Defines the array ``MC_cp_configurations`` of all possible change point configurations including start
+		and end ``x`` if the exact sum is computed. Otherwise it creates an approximate set of random change
 		point configurations based on the cited literature.
 
-		:param print_sum_control: If `print_sum_control = True` it prints whether the exact
-			or the approximate MC sum is computed. Default is `False`.
+		:param print_sum_control: If ``print_sum_control == True`` it prints whether the exact
+			or the approximate MC sum is computed. Default is ``False``.
 
-		:type print_sum_control: Boolean
+		:type print_sum_control: bool
 
 		'''
 		if self.exact_sum_control:
@@ -245,7 +245,7 @@ class CPSegmentFit:
 
 	def calculate_f0(self):
 		'''
-		Calculates `f0` as the mean :math:`f_0` of the normal distribution that characterizes the
+		Calculates ``f0`` as the mean :math:`f_0` of the normal distribution that characterizes the
 		probability density function of the ordinate vectors :math:`f`.
 
 		'''
@@ -255,7 +255,7 @@ class CPSegmentFit:
 
 	def calculate_residue(self):
 		'''
-		Computes `Res_E` the residue :math:`R(E)` of each MC summand.
+		Computes ``Res_E`` the residue :math:`R(E)` of each MC summand.
 
 		'''
 		for m in range(self.n_MC_samples):
@@ -268,8 +268,8 @@ class CPSegmentFit:
 
 	def calculate_marginal_likelihood(self):
 		'''
-		Computes the `marginal_log_likelihood` as :math:`1/Z (R(E))^{(N-3)/2}` and
-		the corresponding `marginal_likelihood` of each considered change point configuration.
+		Computes the ``marginal_log_likelihood`` as :math:`1/Z (R(E))^{(N-3)/2}` and
+		the corresponding ``marginal_likelihood`` of each considered change point configuration.
 		'''
 
 		for m in range(self.n_MC_samples):
@@ -302,9 +302,9 @@ class CPSegmentFit:
 	def predict_D_at_z(self, z):
 		'''
 
-		:param z: The x-data for which an extrapolated value `D` with variance `DELTA_D2` shall be calculated.
+		:param z: The x-data for which an extrapolated value ``D`` with variance ``DELTA_D2`` shall be calculated.
 		:type z: float
-		:return: The extrapolated y-data point `D` and its variance `DELTA_D2` for a given x-data point `z`.
+		:return: The extrapolated y-data point ``D`` and its variance ``DELTA_D2`` for a given x-data point ``z``.
 
 		'''
 
