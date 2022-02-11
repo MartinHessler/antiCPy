@@ -6,7 +6,7 @@ from itertools import combinations
 
 class CPSegmentFit:
 	'''
-	The ``CP_segment_fit`` class contains tools to perform a Bayesian segmential fit under the assumption
+	The ``CP_segment_fit`` class contains tools to perform a Bayesian segmental fit under the assumption
 	of a certain number of change points.
 
 	:param x_data: Given data on the x-axis. Saved in attribute ``x``.
@@ -323,7 +323,7 @@ class CPSegmentFit:
 
 	def fit(self, sigma_multiples = 3):
 		'''
-		Computes the segmential linear fit of the time series data with integrated change point assumptions
+		Computes the segmental linear fit of the time series data with integrated change point assumptions
 		over the ``z_array`` which contains ``z_array_size`` equidistant data points in the range from the
 		first entry of ``x`` up to the ``prediction_horizon``. The fit results and corresponding variances
 		are saved in the attributes ``D_array`` and ``DELTA_D2_array``, respectively.
