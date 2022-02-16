@@ -1,4 +1,4 @@
-[![DOI](https://zenodo.org/badge/440811484.svg)](https://zenodo.org/badge/latestdoi/440811484) [![Documentation Status](https://readthedocs.org/projects/anticpy/badge/?version=latest)](https://anticpy.readthedocs.io/en/latest/?badge=latest)
+[![DOI](https://zenodo.org/badge/440811484.svg)](https://zenodo.org/badge/latestdoi/440811484) [![Documentation Status](https://readthedocs.org/projects/anticpy/badge/?version=latest)](https://anticpy.readthedocs.io/en/latest/?badge=latest) [![PyPI version](https://badge.fury.io/py/antiCPy.svg)](https://badge.fury.io/py/antiCPy)
 
 antiCPy
 =======
