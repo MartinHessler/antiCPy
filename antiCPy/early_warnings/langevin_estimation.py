@@ -10,7 +10,7 @@ import emcee
 
 class LangevinEstimation:
     '''
-    The ``Langevin_estimation`` class includes tools to estimate a polynomial Langevin equation with various
+    The ``LangevinEstimation`` class includes tools to estimate a polynomial Langevin equation with various
     drift and diffusion terms and provides the drift slope :math:`\zeta` as a resilience measure.
 
     :param data: A one dimensional numpy array containing the times series to analyse.
@@ -98,6 +98,7 @@ class LangevinEstimation:
 
     def __init__(self, data, time, drift_model='3rd order polynomial', diffusion_model='constant',
                  prior_type='Non-informative linear and Gaussian Prior', prior_range=None, scales=None):
+
         if drift_model == '3rd order polynomial':
             self.num_drift_params = 4
         elif drift_model == 'first order polynomial':
