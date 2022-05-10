@@ -427,7 +427,7 @@ class LangevinEstimation:
 
     def calc_driftslope_noise(self, slope_grid, noise_grid, nwalkers=50, nsteps=10000, nburn=200,
                               n_joint_samples=50000, n_slope_samples=50000, n_noise_samples=50000,
-                              cred_percentiles=np.array([16, 1]), print_AC_tau=False,
+                              cred_percentiles=[16, 1], print_AC_tau=False,
                               ignore_AC_error=False, thinning_by=60, print_progress=False):
         '''
         Calculates the drift slope estimate :math:`\hat{\zeta}` and the noise level :math:`\hat{\sigma}`
@@ -480,7 +480,7 @@ class LangevinEstimation:
         :param print_progress: If ``True`` the progress of the MCMC sampling is shown. Default is ``False``.
         :type print_progress: bool
         '''
-
+        cred_percentiles = np.array(cred_percentiles)
         self.data_window = np.roll(self.data, shift=- self.window_shift)[:self.window_size]
         self.increments = self.data_window[1:] - self.data_window[:-1]
         self.time_window = np.roll(self.time, shift=- self.window_shift)[:self.window_size]
@@ -526,7 +526,7 @@ class LangevinEstimation:
     def perform_resilience_scan(self, window_size, window_shift, slope_grid, noise_grid,
                                              nwalkers=50, nsteps=10000, nburn=200, n_joint_samples=50000,
                                              n_slope_samples=50000, n_noise_samples=50000,
-                                             cred_percentiles=np.array([16, 1]), print_AC_tau=False,
+                                             cred_percentiles=[16, 1], print_AC_tau=False,
                                              ignore_AC_error=False, thinning_by=60, print_progress=False,
                                              slope_save_name='default_save_slopes',
                                              noise_level_save_name='default_save_noise', save=True,
@@ -623,6 +623,7 @@ class LangevinEstimation:
                         Default is ``None``.
         :type mark_noise_level: float
         '''
+        cred_percentiles = np.array(cred_percentiles)
         self.window_size = window_size
         self.window_shift = window_shift
         self.data_window = np.zeros(window_size)
