@@ -334,26 +334,30 @@ class LangevinEstimation:
         global fig, axs, sl_gr_animation, noise_gr_animation, animation_count, animation_time, animation_data  # vspan_window, noise_pdf_line, drift_slope_line, noise_line, CB_slope_I, CB_slope_II, CB_noise_I, CB_noise_II
         axs[0, 0].plot(animation_time, animation_data, color='C0')  # , color = 'b'
         axs[0, 0].set_xlim(animation_time[0], animation_time[-1])
-        axs[0, 0].axvline(crit_poi, ls=':', color='r')
+        if crit_poi != None:
+            axs[0, 0].axvline(crit_poi, ls=':', color='r')
         axs[0, 0].set_ylim(np.min(animation_data) - 1, np.max(animation_data) + 1)
         axs[0, 0].set_ylabel(r'variable $x$', fontsize=15)
         axs[0, 0].set_xlabel(r'time $t$', fontsize=15)
 
         axs[0, 1].set_xlim(noise_gr_animation[0], noise_gr_animation[-1])
         axs[0, 1].set_ylim(0, 100)
-        axs[0, 1].axvline(noi_le, ls=':', color='g')
+        if noi_le != None:
+            axs[0, 1].axvline(noi_le, ls=':', color='g')
         axs[0, 1].set_ylabel(r'Noise Posterior $P(\hat{\theta_4})$', fontsize=15)
         axs[0, 1].set_xlabel(r'noise level $\hat{\theta_4}$', fontsize=15)
 
         axs[1, 0].set_xlim(animation_time[0], animation_time[-1])
         axs[1, 0].plot(animation_time, np.zeros(animation_time.size), ls=':', color='r')
-        axs[1, 0].axvline(crit_poi, ls=':', color='r')
+        if crit_poi != None:
+            axs[1, 0].axvline(crit_poi, ls=':', color='r')
         axs[1, 0].set_ylabel(r'max posterior slope $\zeta^{\rm max}$', fontsize=15)
         axs[1, 0].set_xlabel(r'time $t$', fontsize=15)
 
         axs[1, 1].set_xlim(animation_time[0], animation_time[-1])
         axs[1, 1].set_ylim(noise_gr_animation[0], noise_gr_animation[-1])
-        axs[1, 1].plot(animation_time, noi_le * np.ones(animation_time.size), ls=':', color='g')
+        if noi_le != None:
+            axs[1, 1].plot(animation_time, noi_le * np.ones(animation_time.size), ls=':', color='g')
         axs[1, 1].set_ylabel(r'max posterior noise $\theta^{\rm max}_4$', fontsize=15)
         axs[1, 1].set_xlabel(r'time $t$', fontsize=15)
 
