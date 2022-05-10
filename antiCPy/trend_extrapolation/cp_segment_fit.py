@@ -191,7 +191,7 @@ class CPSegmentFit:
 		 Additionally, the ``MC_cp_configurations`` attribute and its shape is printed. The attribute
 		 includes the start and end values. Default is ``False``.
 
-		 :type config_output: bool
+		:type config_output: bool
 
 		'''
 		if self.exact_sum_control:
