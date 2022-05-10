@@ -175,7 +175,7 @@ class CPSegmentFit:
 			print('ERROR: The number of number_expected_changepoints <= 0 and the input x and y do not have the same shape.')
 
 
-	def initialize_MC_cp_configurations(self, print_sum_control = False):
+	def initialize_MC_cp_configurations(self, print_sum_control = False, config_output = False):
 		'''
 		Defines the array ``MC_cp_configurations`` of all possible change point configurations including start
 		and end ``x`` if the exact sum is computed. Otherwise it creates an approximate set of random change
@@ -186,22 +186,31 @@ class CPSegmentFit:
 
 		:type print_sum_control: bool
 
+		:param config_output: If ``True`` the possible change point configurations without
+		 start and end data point and the shape of the corresponding array are printed.
+		 Additionally, the ``MC_cp_configurations`` attribute and its shape is printed. The attribute
+		 includes the start and end values. Default is ``False``.
+
+		 :type config_output: bool
+
 		'''
 		if self.exact_sum_control:
 			if print_sum_control:
 				print('Less configurations than MC sample proposal. Compute exact sum!')
 			possible_configs_list = list(combinations(self.x[1:-1], self.n_cp))
 			possible_configs = np.array(possible_configs_list)
-			print('Possible configs: ', possible_configs)
-			print('Possible configs shape: ', possible_configs.shape)
+			if config_output:
+				print('Possible configs: ', possible_configs)
+				print('Possible configs shape: ', possible_configs.shape)
 			start_value_dummy = np.ones((possible_configs.shape[0], 1)) * self.x[0]
 			if self.prediction_horizon == None:
 				end_value_dummy = np.ones((possible_configs.shape[0], 1)) * self.x[-1]
 			elif self.prediction_horizon > 0:
 				end_value_dummy = np.ones((possible_configs.shape[0], 1)) * self.prediction_horizon
 			composition_dummy = np.append(start_value_dummy, np.append(possible_configs, end_value_dummy, axis = 1), axis = 1)
-			print('composition_dummy: ', composition_dummy)
-			print('composition_dummy shape: ', composition_dummy.shape)
+			if config_output:
+				print('MC_cp_configurations: ', composition_dummy)
+				print('MC_cp_configurations shape: ', composition_dummy.shape)
 			self.MC_cp_configurations = composition_dummy
 		elif self.exact_sum_control == False:
 			if print_sum_control:
@@ -321,7 +330,7 @@ class CPSegmentFit:
 		return D, DELTA_D2
 
 
-	def fit(self, sigma_multiples = 3):
+	def fit(self, sigma_multiples = 3, print_progress = True):
 		'''
 		Computes the segmental linear fit of the time series data with integrated change point assumptions
 		over the ``z_array`` which contains ``z_array_size`` equidistant data points in the range from the
@@ -330,7 +339,9 @@ class CPSegmentFit:
 
 		:param sigma_multiples: Specifies which multiple of standard deviations is chosen to determine the
 			``upper_uncertainty_bound`` and the ``lower_uncertainty_bound``. Default is 3.
-		:type sigma_multiples: float
+		:type sigma_multiples:
+		:param print_progress: If ``True`` the currently predicted data count is printed and updated successively.
+		:type print_progress: bool
 		'''
 
 		self.initialize_MC_cp_configurations() # save the possible change point configurations
@@ -360,7 +371,8 @@ class CPSegmentFit:
 		# transition_time = 0
 		#predict data with weighted sums over the change point configurations
 		for i in range(self.z_array.size):
-			print('predicted data: ' +str(i))
+			if print_progress:
+				print('predicted data: ' +str(i))
 			self.D_array[i], self.DELTA_D2_array[i] = self.predict_D_at_z(z = self.z_array[i])
 			# determine the zero crossings of the predictions and confidence bands
 			if self.D_array[i] >= 0 and prediction_flag == False:
