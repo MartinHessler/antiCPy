@@ -285,28 +285,51 @@ class CPSegmentFit:
 			self.marginal_log_likelihood[m] =  np.log(self.Res_E[m]) * (-(self.d.size - 3) / 2.)
 			self.marginal_likelihood_pdf[m] = self.Res_E[m]**(-(self.d.size - 3) / 2.)
 
-	def calculate_marginal_cp_pdf(self):
+	def calculate_marginal_cp_pdf(self, integration_method='simpson'):
 		'''
 		Calculates the marginal posterior ``marginal_cp_pdf`` of each possible configuration of
 		change point positions and normalizes the resulting probability density function.
 		Therefore, the normalization constant is determined by integration of the resulting pdf
 		via the simpson rule.
 
+		:param integration_method: Determines the integration method to compute the normalization.
+			Default is ``'simpson'`` for the Simpson rule. Sometimes the Simpson rule tends to be unstable.
+			Therefore, the simple alternative sum of the probability density can be used as normalization via
+			the option ``'sum'``. The method should be the same as the integration method used in
+			``calculate_cp_prob(...)``.
+
+		:type integration_method: str
 		'''
 		marginal_cp_log_pdf = self.marginal_log_likelihood[:] + np.log(self.cp_prior_pdf[:])
 		marginal_cp_pdf = np.exp(marginal_cp_log_pdf)
-		normalizing_Z_factor = cit.simps(marginal_cp_pdf, np.linspace(self.x_start, self.x_end, marginal_cp_pdf.size, endpoint = True))
+		if integration_method == 'simpson':
+			normalizing_Z_factor = cit.simps(marginal_cp_pdf, np.linspace(self.x_start, self.x_end, marginal_cp_pdf.size, endpoint = True))
+		elif integration_method == 'sum':
+			normalizing_Z_factor = np.sum(marginal_cp_pdf)
+		if normalizing_Z_factor == 0:
+			print('WARNING: The integral over the marginal change point probability density returns zero. The normalizing factor is set to one in order to avoid division by zero.')
+			normalizing_Z_factor = 1
 		self.marginal_cp_pdf = 1. / normalizing_Z_factor * marginal_cp_pdf
 
-	def calculate_prob_cp(self):
+	def calculate_prob_cp(self, integration_method='simpson'):
 		'''
 		Calculates the probability ``prob_cp``  of each configuration of change point positions.
 
+		:param integration_method: Determines the integration method to compute the change point probability.
+			Default is ``'simpson'`` for the Simpson rule. Sometimes the Simpson rule tends to be unstable.
+			Therefore, the simple alternative sum of the probability density of each possible change point
+			position can be calculated via the option ``'sum'``. The method should be the same as the
+			integration method used in ``calculate_marginal_cp_pdf(...)``.
+
+		:type integration_method: str
 		'''
 
 		config_x_array = np.linspace(self.x[0],self.x[-1],self.marginal_cp_pdf.size)
 		for m in range(self.n_MC_samples):
-			self.prob_cp[m] = cit.simps(self.marginal_cp_pdf[m:m+2], config_x_array[m:m+2])
+			if integration_method == 'simpson':
+				self.prob_cp[m] = cit.simps(self.marginal_cp_pdf[m:m+2], config_x_array[m:m+2])
+			elif integration_method == 'sum':
+				self.prob_cp[m] = np.sum(self.marginal_cp_pdf[m:m+2])
 
 	def predict_D_at_z(self, z):
 		'''
