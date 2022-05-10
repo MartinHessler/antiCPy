@@ -20,9 +20,9 @@ class LangevinEstimation:
     :param drift_model: Defines the drift model. Default is ``'3rd order polynomial'``.
                         Additionally, a ``'first order polynomial'`` can be chosen.
     :type drift_model: str
-    :param drift_model: Defines the diffusion model. Default is ``'constant'``.
+    :param diffusion_model: Defines the diffusion model. Default is ``'constant'``.
                         Additionally, a ``'first order polynomial'`` can be chosen.
-    :type drift_model: str
+    :type diffusion_model: str
     :param prior_type: Defines the used prior to calculate the posterior distribution of the data.
                         Default is ``'Non-informative linear and Gaussian Prior'``. A flat prior can be chosen
                         with ``'Flat Prior'``.
@@ -98,7 +98,8 @@ class LangevinEstimation:
 
     def __init__(self, data, time, drift_model='3rd order polynomial', diffusion_model='constant',
                  prior_type='Non-informative linear and Gaussian Prior', prior_range=None, scales=None):
-
+        self.drift_model = drift_model
+        self.diffusion_model = diffusion_model
         if drift_model == '3rd order polynomial':
             self.num_drift_params = 4
         elif drift_model == 'first order polynomial':
