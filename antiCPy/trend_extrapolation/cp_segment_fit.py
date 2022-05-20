@@ -167,6 +167,8 @@ class CPSegmentFit:
 			self.transition_time = None
 			self.upper_uncertainty_bound = None
 			self.lower_uncertainty_bound = None
+			self.D_factor = np.zeros(num_MC_cp_samples)
+			self.DELTA_D2_factor = np.zeros(num_MC_cp_samples)
 		elif number_expected_changepoints > 0 and x_data.shape != y_data.shape:
 			print('ERROR: The x and y input data do not have the same shape.')
 		elif  x_data.shape == y_data.shape and number_expected_changepoints <= 0:
@@ -285,7 +287,7 @@ class CPSegmentFit:
 			self.marginal_log_likelihood[m] =  np.log(self.Res_E[m]) * (-(self.d.size - 3) / 2.)
 			self.marginal_likelihood_pdf[m] = self.Res_E[m]**(-(self.d.size - 3) / 2.)
 
-	def calculate_marginal_cp_pdf(self, integration_method='simpson'):
+	def calculate_marginal_cp_pdf(self, integration_method='Riemann sum'):
 		'''
 		Calculates the marginal posterior ``marginal_cp_pdf`` of each possible configuration of
 		change point positions and normalizes the resulting probability density function.
@@ -293,43 +295,70 @@ class CPSegmentFit:
 		via the simpson rule.
 
 		:param integration_method: Determines the integration method to compute the normalization.
-			Default is ``'simpson'`` for the Simpson rule. Sometimes the Simpson rule tends to be unstable.
-			Therefore, the simple alternative sum of the probability density can be used as normalization via
-			the option ``'sum'``. The method should be the same as the integration method used in
-			``calculate_cp_prob(...)``.
+			Default is ``'Riemann sum'`` for performing numerical integration via a sum of rectangles
+			with the sample width. Alternatively, the ``'Simpson rule'`` can be chosen in the case
+			of one possible change point. Sometimes the Simpson rule tends to be unstable.
+			The method should be the same as the integration method used in ``calculate_cp_prob(...)``.
 
 		:type integration_method: str
 		'''
+
 		marginal_cp_log_pdf = self.marginal_log_likelihood[:] + np.log(self.cp_prior_pdf[:])
 		marginal_cp_pdf = np.exp(marginal_cp_log_pdf)
-		if integration_method == 'simpson':
-			normalizing_Z_factor = cit.simps(marginal_cp_pdf, np.linspace(self.x_start, self.x_end, marginal_cp_pdf.size, endpoint = True))
-		elif integration_method == 'sum':
-			normalizing_Z_factor = np.sum(marginal_cp_pdf)
+		marginal_cp_pdf_dummy = np.append([0], np.append(marginal_cp_pdf, [0]))
+		if integration_method == 'Riemann sum':
+			normalizing_Z_factor = np.sum(marginal_cp_pdf_dummy)
+		elif integration_method == 'Simpson rule':
+			if self.n_cp == 1:
+				normalizing_Z_factor = cit.simps(marginal_cp_pdf_dummy, np.linspace(self.x_start, self.x_end, marginal_cp_pdf.size + 2, endpoint=True))
+			else:
+				print('ERROR: The Simpson rule is not implemented for more than one change point.')
+		else:
+			print('ERROR: The integration method in `calculate_marginal_cp_pdf(...)` is unknown.')
 		if normalizing_Z_factor == 0:
 			print('WARNING: The integral over the marginal change point probability density returns zero. The normalizing factor is set to one in order to avoid division by zero.')
 			normalizing_Z_factor = 1
 		self.marginal_cp_pdf = 1. / normalizing_Z_factor * marginal_cp_pdf
 
-	def calculate_prob_cp(self, integration_method='simpson'):
+	def calculate_prob_cp(self, integration_method='Riemann sum'):
 		'''
 		Calculates the probability ``prob_cp``  of each configuration of change point positions.
 
 		:param integration_method: Determines the integration method to compute the change point probability.
-			Default is ``'simpson'`` for the Simpson rule. Sometimes the Simpson rule tends to be unstable.
-			Therefore, the simple alternative sum of the probability density of each possible change point
-			position can be calculated via the option ``'sum'``. The method should be the same as the
+			Default is ``'Riemann sum'`` for numerical integration with rectangles. Alternatively, the
+			``'Simpson rule'`` can be chosen under the assumption of one change point.
+			Sometimes the Simpson rule tends to be unstable. The method should be the same as the
 			integration method used in ``calculate_marginal_cp_pdf(...)``.
 
 		:type integration_method: str
 		'''
 
-		config_x_array = np.linspace(self.x[0],self.x[-1],self.marginal_cp_pdf.size)
+		config_x_array = np.linspace(self.x_start, self.x_end ,self.marginal_cp_pdf.size+2, endpoint = True)
+		marginal_cp_pdf_dummy = np.append([0],np.append(self.marginal_cp_pdf, [0]))
+		if integration_method == 'Riemann sum':
+			self.prob_cp = self.marginal_cp_pdf
+		elif integration_method == 'Simpson rule':
+			if self.n_cp == 1:
+				for m in range(self.n_MC_samples):
+					integration_dummy = cit.simps(marginal_cp_pdf_dummy[m:m+2], config_x_array[m:m+2])
+					if integration_dummy != 0:
+						self.prob_cp[m] = integration_dummy
+					else:
+						self.prob_cp[m] = 0
+			else:
+				print('ERROR: The Simpson rule is not implemented for more than one change point.')
+		else:
+			print('ERROR: The integration method in `calculate_prob_cp(...)` is unknown.')
+
+	def initialize_prediction_factors(self,z):
+		b = np.zeros((self.f0.shape))
 		for m in range(self.n_MC_samples):
-			if integration_method == 'simpson':
-				self.prob_cp[m] = cit.simps(self.marginal_cp_pdf[m:m+2], config_x_array[m:m+2])
-			elif integration_method == 'sum':
-				self.prob_cp[m] = np.sum(self.marginal_cp_pdf[m:m+2])
+			for k in range(self.n_cp + 1):
+				if self.MC_cp_configurations[m,k] <= z <= self.MC_cp_configurations[m,k + 1]:
+					b[m,k:k+2] = [(self.MC_cp_configurations[m,k+1] - z) / (self.MC_cp_configurations[m,k+1] - self.MC_cp_configurations[m,k]), (z - self.MC_cp_configurations[m,k]) / (self.MC_cp_configurations[m,k+1] - self.MC_cp_configurations[m,k])]
+			self.D_factor[m] = np.linalg.multi_dot([np.transpose(b[m,:]), self.Q_inverse[m,:,:], np.transpose(self.A_matrix[m,:,:]), self.d])
+			self.DELTA_D2_factor[m] = (self.Res_E[m] / (self.x.size - 5)) * np.linalg.multi_dot([np.transpose(b[m,:]), self.Q_inverse[m,:,:],b[m,:]])
+
 
 	def predict_D_at_z(self, z):
 		'''
@@ -340,20 +369,51 @@ class CPSegmentFit:
 
 		'''
 
-		b = np.zeros((self.f0.shape))
-		for m in range(self.n_MC_samples):
-			for k in range(self.n_cp + 1):
-				if self.MC_cp_configurations[m,k] <= z <= self.MC_cp_configurations[m,k + 1]:
-					b[m, k:k+2] = [(self.MC_cp_configurations[m, k+1] - z) / (self.MC_cp_configurations[m,k+1] - self.MC_cp_configurations[m,k]), (z - self.MC_cp_configurations[m,k]) / (self.MC_cp_configurations[m,k+1] - self.MC_cp_configurations[m,k])]
+		self.initialize_prediction_factors(z)
+
 		DELTA_D2 = 0
 		D = 0
 		for m in range(self.n_MC_samples):
-			D += self.prob_cp[m] * np.linalg.multi_dot([np.transpose(b[m,:]), self.Q_inverse[m,:,:], np.transpose(self.A_matrix[m,:,:]), self.d])
-			DELTA_D2 += self.prob_cp[m] * (self.Res_E[m] / (self.x.size - 5)) * np.linalg.multi_dot([np.transpose(b[m,:]), self.Q_inverse[m,:,:],b[m,:]])
+			D += self.prob_cp[m] * self.D_factor[m]
+			DELTA_D2 += self.prob_cp[m] * self.DELTA_D2_factor[m]
 		return D, DELTA_D2
 
 
-	def fit(self, sigma_multiples = 3, print_progress = True):
+
+	def cp_scan(self, print_sum_control=False, integration_method = 'Riemann sum', config_output = False):
+		'''
+		Perform a change point scan on the dataset.
+
+		:param print_sum_control: If `print_sum_control = True` it prints whether the exact
+			or the approximate MC sum is computed. Default is `False`.
+
+		:type print_sum_control: Boolean
+
+		:param integration_method: Determines the integration method to compute the change point probability.
+			Default is ``'Riemann sum'`` for numerical integration with rectangles. Alternatively, the
+			``'Simpson rule'`` can be chosen under the assumption of one change point.
+			Sometimes the Simpson rule tends to be unstable. The method should be the same as the
+			integration method used in ``calculate_marginal_cp_pdf(...)``.
+
+		:type integration_method: str
+		'''
+
+		self.initialize_MC_cp_configurations(print_sum_control=print_sum_control, config_output = config_output)
+		self.initialize_A_matrices()
+		try:
+			self.Q_matrix_and_inverse_Q()
+		except np.linalg.LinAlgError as err:
+			if 'Singular matrix' in str(err):
+				self.initialize_MC_cp_configurations()
+				self.initialize_A_matrices()
+		self.calculate_f0()
+		self.calculate_residue()
+		self.calculate_marginal_likelihood()
+		self.calculate_marginal_cp_pdf(integration_method = integration_method)
+		self.calculate_prob_cp(integration_method = integration_method)
+
+
+	def fit(self, sigma_multiples = 3, print_progress = True, integration_method = 'Riemann sum', config_output = False, print_sum_control = True):
 		'''
 		Computes the segmental linear fit of the time series data with integrated change point assumptions
 		over the ``z_array`` which contains ``z_array_size`` equidistant data points in the range from the
@@ -365,22 +425,17 @@ class CPSegmentFit:
 		:type sigma_multiples:
 		:param print_progress: If ``True`` the currently predicted data count is printed and updated successively.
 		:type print_progress: bool
+
+		:param integration_method: Determines the integration method to compute the change point probability.
+			Default is ``'Riemann sum'`` for numerical integration with rectangles. Alternatively, the
+			``'Simpson rule'`` can be chosen under the assumption of one change point.
+			Sometimes the Simpson rule tends to be unstable. The method should be the same as the
+			integration method used in ``calculate_marginal_cp_pdf(...)``.
+
+		:type integration_method: str
 		'''
 
-		self.initialize_MC_cp_configurations() # save the possible change point configurations
-		# follow the publication of van der Linden
-		self.initialize_A_matrices()
-		try:
-			self.Q_matrix_and_inverse_Q()
-		except np.linalg.LinAlgError as err:
-			if 'Singular matrix' in str(err):
-				self.initialize_MC_cp_configurations()
-				self.initialize_A_matrices()
-		self.calculate_f0()
-		self.calculate_residue()
-		self.calculate_marginal_likelihood()
-		self.calculate_marginal_cp_pdf()
-		self.calculate_prob_cp()
+		self.cp_scan(print_sum_control = print_sum_control, integration_method = 'Riemann sum', config_output=config_output)
 
 		# initialize arrays for the fitted values and their standard deviation
 		self.D_array = np.zeros(self.z_array.size)
