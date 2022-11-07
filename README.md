@@ -15,7 +15,7 @@ Citing antiCPy
 
 Please cite the publication 
 
-Heßler et al 2021 New J. Phys. https://doi.org/10.1088/1367-2630/ac46d4
+Heßler et al 2022 New J. Phys. https://doi.org/10.1088/1367-2630/ac46d4
 
 in your publications for which you used **antiCPy**.
 
@@ -35,5 +35,5 @@ pip install antiCPy
 
 Related publications
 ====================
-Up to now the package is accompanied by the preprint
-paper [Bayesian on-line anticipation of critical transitions](https://arxiv.org/abs/2108.05179).
+Up to now the package is accompanied by 
+- the preprint paper [Bayesian on-line anticipation of critical transitions](https://arxiv.org/abs/2108.05179).
