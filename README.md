@@ -36,4 +36,5 @@ pip install antiCPy
 Related publications
 ====================
 Up to now the package is accompanied by 
+- the preprint paper [Quantifying resilience and the risk of regime shifts under strong correlated noise](http://arxiv.org/abs/2204.03403),
 - the preprint paper [Bayesian on-line anticipation of critical transitions](https://arxiv.org/abs/2108.05179).
