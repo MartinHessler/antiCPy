@@ -3,10 +3,10 @@ import matplotlib
 import matplotlib.pylab as plt
 from matplotlib.animation import FuncAnimation
 from scipy import optimize
+from scipy.ndimage import gaussian_filter
 import scipy.stats as cpy
 import numba
 import emcee
-
 
 class LangevinEstimation:
     '''
@@ -94,10 +94,34 @@ class LangevinEstimation:
     :param noise_kernel_density_obj: Kernel density object of ``scipy.gaussian_kde(...)`` of the noise level
                         posterior created with a Gaussian kernel and a bandwidth computed by silverman's rule.
     :type noise_level_density_obj: ``scipy`` kernel density object of the ``scipy.gaussian_kde(...)`` function.
+    :param slow_trend: Contains the subtracted slow trend if a detrending is applied to the whole data
+                        or each window separately.
+    :type slow_trend: One-dimensional numpy array of floats.
+    :param detrending_of_whole_dataset: Default is ``None``. If ``'linear'`` the whole ``data`` is detrended linearly. If
+                        ``Gaussian kernel smoothed`` a Gaussian smoothed curve is subtracted from the whole ``data``.
+                        The parameters of the kernel smoothing can be set by ``gauss_filter_mode``, ``gauss_filter_sigma``,
+                        ``gauss_filter_order``, ``gauss_filter_cval`` and ``gauss_filter_truncate``.
+    :type detrending_of_whole_dataset: str
+    :param gauss_filter_mode: According to the ``scipy.ndimage.filters.gaussian_filter`` option.
+    :type gauss_filter_mode: str
+    :param gauss_filter_sigma: According to the ``scipy.ndimage.filters.gaussian_filter`` option.
+    :type gauss_filter_sigma: float
+    :param gauss_filter_order: According to the ``scipy.ndimage.filters.gaussian_filter`` option.
+    :type gauss_filter_order: int
+    :param gauss_filter_cval: According to the ``scipy.ndimage.filters.gaussian_filter`` option.
+    :type gauss_filter_cval: float
+    :param gauss_filter_truncate: According to the ``scipy.ndimage.filters.gaussian_filter`` option.
+    :type gauss_filter_truncate: float
+    :param plot_detrending: Default is ``False``. If ``True``, the ``self.data`` as well as the
+                        ``self.slow_trend`` and the detrended version are shown.
+    :type plot_detrending: bool
     '''
 
     def __init__(self, data, time, drift_model='3rd order polynomial', diffusion_model='constant',
-                 prior_type='Non-informative linear and Gaussian Prior', prior_range=None, scales=None):
+                 prior_type='Non-informative linear and Gaussian Prior', prior_range=None, scales=None,
+                 detrending_of_whole_dataset = None, gauss_filter_mode = 'reflect',
+                    gauss_filter_sigma = 6, gauss_filter_order = 0, gauss_filter_cval = 0.0,
+                    gauss_filter_truncate = 4.0, plot_detrending = False):
         self.drift_model = drift_model
         self.diffusion_model = diffusion_model
         if drift_model == '3rd order polynomial':
@@ -128,7 +152,14 @@ class LangevinEstimation:
             self.scales = scales
         self.prior_type = prior_type
         self.theta = np.zeros(self.ndim)
-        self.data = data
+        self.slow_trend = None
+        if detrending_of_whole_dataset == None:
+            self.data = data
+        else:
+            self.data, self.slow_trend = self.detrend(time, data, detrending_of_whole_dataset,
+                                                           gauss_filter_mode,gauss_filter_sigma,
+                                                           gauss_filter_order,gauss_filter_cval,
+                                                           gauss_filter_truncate, plot_detrending)
         self.data_size = data.size
         self.time = time
         self.dt = time[1] - time[0]
@@ -148,6 +179,56 @@ class LangevinEstimation:
         self.noise_level_storage = None
         self.slope_kernel_density_obj = None
         self.noise_kernel_density_obj = None
+
+    @staticmethod
+    def detrend(time, data, detrend_mode = 'linear', gauss_filter_mode = 'reflect',
+                    gauss_filter_sigma = 6, gauss_filter_order = 0, gauss_filter_cval = 0.0,
+                    gauss_filter_truncate = 4.0, plot_detrending = False):
+        """
+        Method to apply a linear or Gaussian kernel smoothed detrending to the
+        whole data or to each data window separately.
+
+        :param time: Time points of the time series.
+        :type time: One-dimensional numpy array of floats.
+        :param data: Time series that is to be detrended.
+        :type data: One-dimensional numpy array of floats.
+        :param detrend_mode: Each window is linearly detrended for ``detrend = 'linear'`` and with a Gaussian kernel filter via ``detrend = 'gauss_kernel'``. The linear detrending is the default option.
+        :type detrend_mode: str
+        :param gauss_filter_mode: According to the ``scipy.ndimage.filters.gaussian_filter`` option.
+        :type gauss_filter_mode: str
+        :param gauss_filter_sigma: According to the ``scipy.ndimage.filters.gaussian_filter`` option.
+        :type gauss_filter_sigma: float
+        :param gauss_filter_order: According to the ``scipy.ndimage.filters.gaussian_filter`` option.
+        :type gauss_filter_order: int
+        :param gauss_filter_cval: According to the ``scipy.ndimage.filters.gaussian_filter`` option.
+        :type gauss_filter_cval: float
+        :param gauss_filter_truncate: According to the ``scipy.ndimage.filters.gaussian_filter`` option.
+        :type gauss_filter_truncate: float
+        :return: The first return object contains the detrended data, the second one the subtracted slow trend.
+        :rtype: One-dimensional numpy arrays.
+        """
+        if detrend_mode == 'linear':
+            degree = 1
+            popt = np.polyfit(time, data, deg = degree)
+            slow_trend = popt[0] * time + popt[1]
+            detrended_data = data - slow_trend
+        elif detrend_mode == 'Gaussian kernel smoothed':
+            slow_trend = gaussian_filter(data, gauss_filter_sigma, order = gauss_filter_order,
+                                         output=None, mode= gauss_filter_mode, cval= gauss_filter_cval,
+                                         truncate= gauss_filter_truncate)
+            detrended_data = data - slow_trend
+        else:
+            print('ERROR: Type of detrending unknown.')
+        if plot_detrending:
+            plt.close()
+            check_detrending_figure, ax = plt.subplots()
+            ax.plot(time, data, label='data')
+            ax.plot(time, slow_trend, label='slow trend')
+            ax.plot(time, detrended_data, label='detrended data')
+            ax.legend()
+            plt.show()
+            plt.close(check_detrending_figure)
+        return detrended_data, slow_trend
 
     def third_order_polynom_slope_in_fixed_point(self):
         '''
@@ -381,7 +462,9 @@ class LangevinEstimation:
     # performs the animation
 
     def animation(self, i, slope_grid, noise_grid, nwalkers, nsteps, nburn, n_joint_samples, n_slope_samples,
-                  n_noise_samples, cred_percentiles, print_AC_tau, ignore_AC_error, thinning_by, print_progress):
+                  n_noise_samples, cred_percentiles, print_AC_tau, ignore_AC_error, thinning_by, print_progress,
+                  detrending_per_window, gauss_filter_mode,gauss_filter_sigma, gauss_filter_order,
+                  gauss_filter_cval, gauss_filter_truncate, plot_detrending):
         '''
         Function that is called iteratively by the ``matplotlib.animation.FuncAnimation(...)`` tool
         to generate an animation of the rolling window scan of a time series. The time series, the rolling
@@ -392,7 +475,8 @@ class LangevinEstimation:
         self.window_shift = i
         self.calc_driftslope_noise(slope_grid, noise_grid, nwalkers, nsteps, nburn, n_joint_samples, n_slope_samples,
                                    n_noise_samples, cred_percentiles, print_AC_tau, ignore_AC_error, thinning_by,
-                                   print_progress)
+                                   print_progress, detrending_per_window,gauss_filter_mode,gauss_filter_sigma,
+                                   gauss_filter_order, gauss_filter_cval, gauss_filter_truncate, plot_detrending)
         self.slope_storage[:, animation_count] = self.drift_slope
         self.noise_level_storage[:, animation_count] = self.noise_level_estimate
         axs[0, 0].collections.clear()
@@ -433,7 +517,10 @@ class LangevinEstimation:
     def calc_driftslope_noise(self, slope_grid, noise_grid, nwalkers=50, nsteps=10000, nburn=200,
                               n_joint_samples=50000, n_slope_samples=50000, n_noise_samples=50000,
                               cred_percentiles=[16, 1], print_AC_tau=False,
-                              ignore_AC_error=False, thinning_by=60, print_progress=False):
+                              ignore_AC_error=False, thinning_by=60, print_progress=False,
+                              detrending_per_window = None, gauss_filter_mode = 'reflect',
+                              gauss_filter_sigma = 6, gauss_filter_order = 0, gauss_filter_cval = 0.0,
+                              gauss_filter_truncate = 4.0, plot_detrending = False):
         '''
         Calculates the drift slope estimate :math:`\hat{\zeta}` and the noise level :math:`\hat{\sigma}`
         from the MCMC sampled parameters of a Langevin model for a given ``window_size`` and given ``window_shift``.
@@ -484,11 +571,36 @@ class LangevinEstimation:
         :type thinning_by: int
         :param print_progress: If ``True`` the progress of the MCMC sampling is shown. Default is ``False``.
         :type print_progress: bool
+        :param detrending_per_window: Default is ``None``. If ``'linear'``, the ``self.data_window`` is detrended linearly. If
+                        ``Gaussian kernel smoothed``, a Gaussian smoothed curve is subtracted from ``self.data_window``.
+                        The parameters of the kernel smoothing can be set by ``gauss_filter_mode``, ``gauss_filter_sigma``,
+                        ``gauss_filter_order``, ``gauss_filter_cval`` and ``gauss_filter_truncate``. Drift slope and
+                        noise level are estimated after detrending in these cases.
+        :type detrending_per_window: str
+        :param gauss_filter_mode: According to the ``scipy.ndimage.filters.gaussian_filter`` option.
+        :type gauss_filter_mode: str
+        :param gauss_filter_sigma: According to the ``scipy.ndimage.filters.gaussian_filter`` option.
+        :type gauss_filter_sigma: float
+        :param gauss_filter_order: According to the ``scipy.ndimage.filters.gaussian_filter`` option.
+        :type gauss_filter_order: int
+        :param gauss_filter_cval: According to the ``scipy.ndimage.filters.gaussian_filter`` option.
+        :type gauss_filter_cval: float
+        :param gauss_filter_truncate: According to the ``scipy.ndimage.filters.gaussian_filter`` option.
+        :type gauss_filter_truncate: float
+        :param plot_detrending: Default is ``False``. If ``True``, the ``self.data`` as well as the
+                            ``self.slow_trend`` and the detrended version are shown.
+        :type plot_detrending: bool
         '''
         cred_percentiles = np.array(cred_percentiles)
         self.data_window = np.roll(self.data, shift=- self.window_shift)[:self.window_size]
-        self.increments = self.data_window[1:] - self.data_window[:-1]
         self.time_window = np.roll(self.time, shift=- self.window_shift)[:self.window_size]
+        if detrending_per_window != None:
+            self.data_window, self.slow_trend = self.detrend(self.time_window, self.data_window,
+                                                                  detrending_per_window,gauss_filter_mode,
+                                                                  gauss_filter_sigma,gauss_filter_order,
+                                                                  gauss_filter_cval, gauss_filter_truncate,
+                                                                  plot_detrending)
+        self.increments = self.data_window[1:] - self.data_window[:-1]
         self.declare_MAP_starting_guesses()
         self.compute_posterior_samples(print_AC_tau=print_AC_tau, ignore_AC_error=ignore_AC_error,
                                        thinning_by=thinning_by, print_progress=print_progress)
@@ -537,7 +649,10 @@ class LangevinEstimation:
                                              noise_level_save_name='default_save_noise', save=True,
                                              create_animation=False, ani_save_name='default_animation_name',
                                              animation_title='', mark_critical_point=None,
-                                             mark_noise_level=None):
+                                             mark_noise_level=None, detrending_per_window = None,
+                                             gauss_filter_mode = 'reflect',gauss_filter_sigma = 6,
+                                             gauss_filter_order = 0, gauss_filter_cval = 0.0,
+                                             gauss_filter_truncate = 4.0, plot_detrending = False):
         '''
         Performs an automated window scan with defined ``window_shift`` over the whole time series. In each
         window the drift slope and noise level estimates with corresponding credibility bands are computed
@@ -645,7 +760,9 @@ class LangevinEstimation:
                 self.window_shift = self.loop_range[i]
                 self.calc_driftslope_noise(slope_grid, noise_grid, nwalkers, nsteps, nburn, n_joint_samples,
                                            n_slope_samples, n_noise_samples, cred_percentiles, print_AC_tau,
-                                           ignore_AC_error, thinning_by, print_progress)
+                                           ignore_AC_error, thinning_by, print_progress, detrending_per_window,
+                                           gauss_filter_mode,gauss_filter_sigma, gauss_filter_order,
+                                           gauss_filter_cval, gauss_filter_truncate, plot_detrending)
                 self.slope_storage[:, i] = self.drift_slope
                 self.noise_level_storage[:, i] = self.noise_level_estimate
         elif create_animation == True:
@@ -672,9 +789,10 @@ class LangevinEstimation:
             ani = FuncAnimation(fig, self.animation, frames=self.loop_range, init_func=self.init, blit=True,
                                 repeat=False, fargs=[slope_grid, noise_grid, nwalkers, nsteps, nburn, n_joint_samples,
                                                      n_slope_samples, n_noise_samples, cred_percentiles, print_AC_tau,
-                                                     ignore_AC_error, thinning_by, print_progress])
+                                                     ignore_AC_error, thinning_by, print_progress,detrending_per_window,
+                                                     gauss_filter_mode,gauss_filter_sigma, gauss_filter_order,
+                                                     gauss_filter_cval, gauss_filter_truncate, plot_detrending])
             ani.save(ani_save_name + '.mp4', writer=writer)  # , writer = writer
         if save:
             np.save(slope_save_name + '.npy', self.slope_storage)
             np.save(noise_level_save_name + '.npy', self.noise_level_storage)
-
