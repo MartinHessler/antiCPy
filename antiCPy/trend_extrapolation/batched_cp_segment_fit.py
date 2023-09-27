@@ -16,11 +16,13 @@ class BatchedCPSegmentFit(CPSegmentFit):
 
 	.. important::
 	    In any case make sure that you use
+
 	        .. code-block::
 	            import multiprocessing
 	            ...
 	            if __name__ == '__main__':
 	                multiprocessing.set_start_method('spawn').
+
 	    Windows should use the method ``'spawn'`` by default. But in general it depends on your system, so it might be better
 	    to set the option always before using a ``BatchedSegmentFit`` object. If you use a Linux distribution the method to create
 	    new workers is usually `fork`. This will copy some features of the main process. Amongst others the needed ``lock`` to
@@ -282,22 +284,21 @@ class BatchedCPSegmentFit(CPSegmentFit):
 
     def fit(self, sigma_multiples=3, print_progress=True,  print_batch_info = False, integration_method='Riemann sum', config_output=False,
             print_sum_control=True, multiprocessing=True, num_processes='half', print_CPU_count=False):
-        '''
+        """
 		Computes the segmental linear fit of the time series data with integrated change point assumptions
 		over the ``z_array`` which contains ``z_array_size`` equidistant data points in the range from the
 		first entry of ``x`` up to the ``prediction_horizon``. The fit results and corresponding variances
 		are saved in the attributes ``D_array`` and ``DELTA_D2_array``, respectively.
 
 		:param sigma_multiples: Specifies which multiple of standard deviations is chosen to determine the
-		    ``upper_uncertainty_bound`` and the ``lower_uncertainty_bound``. Default is 3.
+		        ``upper_uncertainty_bound`` and the ``lower_uncertainty_bound``. Default is 3.
 		:type sigma_multiples: float
 
 		:param integration_method: Determines the integration method to compute the change point probability.
-			Default is ``'Riemann sum'`` for numerical integration with rectangles. Alternatively, the
-			``'Simpson rule'`` can be chosen under the assumption of one change point.
-			Sometimes the Simpson rule tends to be unstable. The method should be the same as the
-			integration method used in ``calculate_marginal_cp_pdf(...)``.
-
+			    Default is ``'Riemann sum'`` for numerical integration with rectangles. Alternatively, the
+			    ``'Simpson rule'`` can be chosen under the assumption of one change point.
+			    Sometimes the Simpson rule tends to be unstable. The method should be the same as the
+			    integration method used in ``calculate_marginal_cp_pdf(...)``.
 		:type integration_method: str
 
 		:param print_batch_info: If ``True``, computed to total batches are printed. Default is ``False''.
@@ -307,19 +308,20 @@ class BatchedCPSegmentFit(CPSegmentFit):
 		:type config_output: bool
 
 		:param print_sum_control: If ``print_sum_control == True`` it prints whether the exact
-            or the approximate MC sum is computed. Default is ``False``.
+                or the approximate MC sum is computed. Default is ``False``.
 		:type print_sum_control: bool
 
 		:param multiprocessing: If ``True``, the batches are computed by ``num_processes`` workers in parallel. Default is ``True``.
 		:type multiprocessing: bool
 
 		:param num_processes: Default is ``'half'``. If ``half``, almost half of the CPU kernels are used. If  ``'all'``, all CPU kernels
-		    are used. If integer number, the defined number of CPU kernels is used for multiprocessing.
+		        are used. If integer number, the defined number of CPU kernels is used for multiprocessing.
 		:type num_processes: str, int
 
 		:param print_CPU_count: If ``True``, the total number of available CPU kernels is printed. Default is ``False``.
 		:type print_CPU_count: bool
-		'''
+		"""
+
         prediction_flag = False
         upper_flag = False
         lower_flag = False

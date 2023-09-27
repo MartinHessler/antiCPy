@@ -1,8 +1,8 @@
 
 .. _The dominant_eigenvalue subpackage documentation:
 
-The ``dominant_eigenvalue`` package documentation
--------------------------------------------------
+The ``dominant_eigenvalue`` package
+-----------------------------------
 
 The package is designed by procedural programming and contains various functions to
 optimize the method's parameters, perform the dominant eigenvalue analysis and visualize
@@ -46,5 +46,7 @@ The third `dominant_eigenvalue.graphics` module provides some functions to plot 
    param_opt_API
    analysis_API
    graphics_API
+   dominant_eigenvalue_maths
+   dominant_eigenvalue_tutorial
 
 

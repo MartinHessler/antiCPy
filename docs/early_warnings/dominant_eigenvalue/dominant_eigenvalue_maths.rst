@@ -1,5 +1,5 @@
-The ``eigval_tsa`` Maths Guide
-===============================
+The "dominant_eigenvalue" Maths Guide
+=====================================
 
 In this chapter the main ideas of the methods and algorithms that are used in the ``eigval_tsa`` package are briefly summarized.
 
@@ -130,10 +130,12 @@ and the autoregressive operator
 
 There are :math:`p+2` unknown parameters :math:`\phi_n, \mu` and :math:`\sigma` that have to be estimated via a least squares fit of the time series data. AR(:math:`p`) models are widely used for stationary and nonstationary processes. [Boxetal15]_.
 
+Bibliography
+------------
 
 .. [Tak81] Floris Takens. “Detecting strange attractors in turbulence”. In: Dynamical Systems and Turbulence, Warwick 1980. Ed. by David Rand and Lai-Sang Young. Berlin, Heidelberg: Springer Berlin Heidelberg, 1981, pp. 366–381. isbn: 978-3-540-38945-3.
 
-.. [Staetal97] J. Stark et al. “Takens embedding theorems for forced and stochastic systems”. In: Nonlinear Analysis: Theory, Methods & Applications 30.8 (1997). Proceedings of the Second World Congress of Nonlinear Analysts, pp. 5303–5314. issn: 0362-546X. doi: https : / / doi . org / 10 . 1016 / S0362 - 546X(96 ) 00149 - 6. url: http : / / www . sciencedirect . com / science / article / pii / S0362546X96001496.
+.. [Staetal97] J. Stark et al. “Takens embedding theorems for forced and stochastic systems”. In: Nonlinear Analysis: Theory, Methods & Applications 30.8 (1997). Proceedings of the Second World Congress of Nonlinear Analysts, pp. 5303–5314. issn: 0362-546X. doi:https://doi.org/10.1016/S0362-546X(96)00149-6. url: http://www.sciencedirect.com/science/article/pii/S0362546X96001496.
 
 .. [Hes18] Martin Heßler. “Leading indicators in B- and R-tipping systems with focus on eigenvalue estimation”. MA thesis. Westfälische Wilhelms-Universität Münster, 2018.
 
@@ -141,7 +143,7 @@ There are :math:`p+2` unknown parameters :math:`\phi_n, \mu` and :math:`\sigma` 
 
 
 
-.. [RCL94] Michael T. Rosenstein, James J. Collins, and Carlo J. De Luca. “Reconstruction expansion as a geometry-based framework for choosing proper delay times”. In: Physica D: Nonlinear Phenomena 73.1 (1994), pp. 82–98. issn: 0167-2789. doi: https://doi.org/10.1016/0167-2789(94)90226-7. url: http://www. sciencedirect.com/science/article/pii/0167278994902267.
+.. [RCL94] Michael T. Rosenstein, James J. Collins, and Carlo J. De Luca. “Reconstruction expansion as a geometry-based framework for choosing proper delay times”. In: Physica D: Nonlinear Phenomena 73.1 (1994), pp. 82–98. issn: 0167-2789. doi: https://doi.org/10.1016/0167-2789(94)90226-7. url: http://www.sciencedirect.com/science/article/pii/0167278994902267.
 
-.. [Boxetal15] George E. P. Box et al. Time Series Analysis : Forecasting and Control.,Incorporated, 2015. ProQuest Ebook Central, https://ebookcentral.proquest.com/lib/ulbmuenster/detail.action?docID=2064681. Wiley Series in Probability and Statistics Ser. John Wiley & Sons, Incorporated, 2015. isbn: 9781118675021 (print) 9781118674918 (e-book). url: https : / / ebookcentral . proquest . com / lib / ulbmuenster / detail . action?docID=2064681.
+.. [Boxetal15] George E. P. Box et al. Time Series Analysis : Forecasting and Control.,Incorporated, 2015. ProQuest Ebook Central, https://ebookcentral.proquest.com/lib/ulbmuenster/detail.action?docID=2064681. Wiley Series in Probability and Statistics Ser. John Wiley & Sons, Incorporated, 2015. isbn: 9781118675021 (print) 9781118674918 (e-book). url: https://ebookcentral.proquest.com/lib/ulbmuenster/detail.action?docID=2064681.
 

@@ -1,7 +1,7 @@
-"trend_extrapolation" subpackage
+"trend_extrapolation" package
 --------------------------------
 
-This is the `antiCPy.trend_extrapolation` subpackage. It contains
+This is the `antiCPy.trend_extrapolation` package. It contains
 
 #. the class `CPSegmentFit` (basic serial implementation),
 #. the class `BatchedCPSegmentFit` (strongly parallelized version).

@@ -1,22 +1,14 @@
-"early_warnings" subpackage
----------------------------
+"early_warnings" package
+------------------------
 
 
-This is the `antiCPy.early_warnings` subpackage. It contains two resilience or early warning metrics:
+This is the `antiCPy.early_warnings` package. It contains two resilience or early warning metrics:
 
 #. the `drift_slope` with basically three fit objects:
 
-    #. the `LangevinEstimation` class that provides possibilities to parameterize the drift and diffusion function in
-        terms of polynomials. The parameters of these functions can be estimated via Markov Chain Monte Carlo (MCMC)
-        sampling or maximum posterior (MAP) estimation and the drift slope can be calculated in a rolling window approach
-        in order to detect changes in the resilience and noise level of a system.
-    #. the `BinningLangevinEstimation` class that is designed to perform a bin-wise MAP LangevinEstimation inspired by
-        [Kleinhans2012]_ . In general, the MAP approach is of course much faster than the MCMC approach. In cases of high
-        amount of data per window or a single estimation over a huge dataset the binning approach is computationally
-        more efficient.
-    #. the ``NonMarkovEstimation` class that introduces a second unobserved Ornstein-Uhlenbeck (OU) process that couples
-        with a constant coefficient into the observed dynamics. The short-term propagator is adjusted following [Willers2021]_ .
-        Furthermore, a time scale separation of adjustable degree can be assumed a priori.
+    #. the `LangevinEstimation` class that provides possibilities to parameterize the drift and diffusion function in terms of polynomials. The parameters of these functions can be estimated via Markov Chain Monte Carlo (MCMC) sampling or maximum posterior (MAP) estimation and the drift slope can be calculated in a rolling window approach in order to detect changes in the resilience and noise level of a system.
+    #. the `BinningLangevinEstimation` class that is designed to perform a bin-wise MAP LangevinEstimation inspired by [Kleinhans2012]_ . In general, the MAP approach is of course much faster than the MCMC approach. In cases of high amount of data per window or a single estimation over a huge dataset the binning approach is computationally more efficient.
+    #. the `NonMarkovEstimation` class that introduces a second unobserved Ornstein-Uhlenbeck (OU) process that couples with a constant coefficient into the observed dynamics. The short-term propagator is adjusted following [Willers2021]_ . Furthermore, a time scale separation of adjustable degree can be assumed a priori.
     .. important::
         A fourth `RocketFastResilienceEstimation` is introduced. As superclass it works as a kind of wrapper of the former.
         Basically, it adds the ``fast_resilience_scan(...)`` and ``fast_MAP_resilience_scan(___)`` functionalities to the
@@ -31,9 +23,8 @@ This is the `antiCPy.early_warnings` subpackage. It contains two resilience or e
     #. get started with the package by a `tutorial`.
 
 .. hint::
-    The `dominant_eigenvalue` package is procedural up to now. Therefore, it contains modules which contain
+    The `dominant_eigenvalue` package is procedural up to now. Therefore, its modules contain
     a collection of functions. In consequence, the import has to be done via
-
     .. code-block::
         # correct import
         import antiCPy.early_warnings.dominant_eigenvalue as dev
@@ -75,8 +66,6 @@ the procedure. We replaced the S-map approach by a simple autoregression scheme 
 
    drift_slope/drift_slope
    dominant_eigenvalue/dominant_eigenvalue_docu
-   dominant_eigenvalue/dominant_eigenvalue_maths
-   dominant_eigenvalue/dominant_eigenvalue_tutorial
 
 Bibliography
 ^^^^^^^^^^^^

@@ -2,7 +2,7 @@
    sphinx-quickstart on Mon Dec 13 10:57:34 2021.
 
 
-Welcome to antiCPy's documentation!
+Welcome to `antiCPy's` documentation!
 ===================================
 
 The package abbreviation **antiCPy** stands for ''**anti**\ cipate **C**\ ritical **P**\ oints (and if you like **C**\

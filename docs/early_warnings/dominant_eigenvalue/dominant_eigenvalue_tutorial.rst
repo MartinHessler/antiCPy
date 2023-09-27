@@ -1,5 +1,5 @@
-The ``dominant_eigenvalue`` Tutorial
-====================================
+The "dominant_eigenvalue" Tutorial
+==================================
 
 This short tutorial aims for an intuitive understanding of the functions and tools that are provided by the
 ``dominant_eigenvalue`` package. A complete code example to analyse the eigenvalues of the system is given for a
