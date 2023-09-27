@@ -3,6 +3,7 @@ import multiprocessing as mp
 from scipy.special import binom
 import scipy.integrate as cit
 from itertools import combinations
+from antiCPy.trend_extrapolation.batched_configs_helper.create_configs_helper import construct_start_combinations_helper
 
 
 class CPSegmentFit:
@@ -167,6 +168,7 @@ class CPSegmentFit:
                 self.z_array = np.linspace(x_data[0], predict_up_to, z_array_size)
             else:
                 self.z_array = np.linspace(x_data[0], x_data[-1], z_array_size)
+            self.z_array_size = z_array_size
             self.D_array = None
             self.DELTA_D2_array = None
             self.transition_time = None
@@ -174,6 +176,7 @@ class CPSegmentFit:
             self.lower_uncertainty_bound = None
             self.D_factor = None
             self.DELTA_D2_factor = None
+            self.normalizing_Z_factor = None
         elif number_expected_changepoints > 0 and x_data.shape != y_data.shape:
             print('ERROR: The x and y input data do not have the same shape.')
         elif x_data.shape == y_data.shape and number_expected_changepoints <= 0:
@@ -332,21 +335,21 @@ class CPSegmentFit:
         marginal_cp_pdf = np.exp(marginal_cp_log_pdf)
         marginal_cp_pdf_dummy = np.append([0], np.append(marginal_cp_pdf, [0]))
         if integration_method == 'Riemann sum':
-            normalizing_Z_factor = np.sum(marginal_cp_pdf_dummy)
+            self.normalizing_Z_factor = np.sum(marginal_cp_pdf_dummy)
         elif integration_method == 'Simpson rule':
             if self.n_cp == 1:
-                normalizing_Z_factor = cit.simps(marginal_cp_pdf_dummy,
+                self.normalizing_Z_factor = cit.simps(marginal_cp_pdf_dummy,
                                                  np.linspace(self.x_start, self.x_end, marginal_cp_pdf.size + 2,
                                                              endpoint=True))
             else:
                 print('ERROR: The Simpson rule is not implemented for more than one change point.')
         else:
             print('ERROR: The integration method in `calculate_marginal_cp_pdf(...)` is unknown.')
-        if normalizing_Z_factor == 0:
+        if self.normalizing_Z_factor == 0:
             print(
                 'WARNING: The integral over the marginal change point probability density returns zero. The normalizing factor is set to one in order to avoid division by zero.')
-            normalizing_Z_factor = 1
-        self.marginal_cp_pdf = 1. / normalizing_Z_factor * marginal_cp_pdf
+            self.normalizing_Z_factor = 1
+        self.marginal_cp_pdf = 1. / self.normalizing_Z_factor * marginal_cp_pdf
 
     def calculate_prob_cp(self, integration_method='Riemann sum'):
         '''
@@ -494,11 +497,19 @@ class CPSegmentFit:
                 lower_flag = True
 
     @staticmethod
-    def init_parallel_CP_pdf(MC_configs, num_cps, cp_prob_grid, prob_cp, sum_cp_probs_connector,
-                             sum_cp_probs_count_connector, print_progress):
+    def init_parallel_CP_pdf(MC_configs, num_cps, cp_prob_grid, prob_cp, sum_cp_probs_connector, memory_management,
+                             sum_cp_probs_count_connector, print_progress, completion_control_connector, multiprocessing,
+                             num_MC_samples, data):
         global init_dict, shared_memory_dict
         init_dict = {}
-        init_dict['MC_configs'] = MC_configs
+        init_dict['memory_management'] = memory_management
+        init_dict['multiprocessing'] = multiprocessing
+        init_dict['num_MC_samples'] = num_MC_samples
+        if not memory_management:
+            init_dict['MC_configs'] = MC_configs
+        else:
+            init_dict['data'] = data
+            init_dict['total_data'] = data.size
         init_dict['num_cps'] = num_cps
         init_dict['cp_prob_grid'] = cp_prob_grid
         init_dict['prob_cp'] = prob_cp
@@ -506,23 +517,55 @@ class CPSegmentFit:
         shared_memory_dict = {}
         shared_memory_dict['sum_cp_probs_connector'] = sum_cp_probs_connector
         shared_memory_dict['sum_cp_probs_count_connector'] = sum_cp_probs_count_connector
+        shared_memory_dict['completion_control_connector'] = completion_control_connector
 
     @staticmethod
-    def batched_compute_CP_pdfs(m):
+    def batched_compute_CP_pdfs(m, lock):
         if init_dict['print_progress']:
-            print('CP configuration ' + str(m + 1) + '/' + str(init_dict['MC_configs'].shape[0]))
+            print('CP configuration ' + str(m + 1) + '/' + str(init_dict['num_MC_samples']))
         sum_cp_probs = np.frombuffer(shared_memory_dict['sum_cp_probs_connector'].get_obj()).reshape(
             (init_dict['num_cps'], init_dict['cp_prob_grid'].size))
         sum_cp_probs_count = np.frombuffer(shared_memory_dict['sum_cp_probs_count_connector'].get_obj()).reshape(
             (init_dict['num_cps'], init_dict['cp_prob_grid'].size))
-        for j in range(0, init_dict['num_cps']):
-            sum_cp_probs[j, init_dict['cp_prob_grid'] == init_dict['MC_configs'][m, j + 1]] += init_dict['prob_cp'][m]
-            sum_cp_probs_count[j, init_dict['cp_prob_grid'] == init_dict['MC_configs'][m, j + 1]] += 1
+        completion_control = shared_memory_dict['completion_control_connector']
+        if not init_dict['memory_management']:
+            if init_dict['multiprocessing']:
+                with lock:
+                    completion_control.value += 1
+                    for j in range(0, init_dict['num_cps']):
+                        sum_cp_probs[j, init_dict['cp_prob_grid'] == init_dict['MC_configs'][m, j + 1]] += init_dict['prob_cp'][m]
+                        sum_cp_probs_count[j, init_dict['cp_prob_grid'] == init_dict['MC_configs'][m, j + 1]] += 1
+            else:
+                completion_control.value += 1
+                for j in range(0, init_dict['num_cps']):
+                    sum_cp_probs[j, init_dict['cp_prob_grid'] == init_dict['MC_configs'][m, j + 1]] += \
+                    init_dict['prob_cp'][m]
+                    sum_cp_probs_count[j, init_dict['cp_prob_grid'] == init_dict['MC_configs'][m, j + 1]] += 1
+        elif init_dict['memory_management']:
+            current_MC_config = np.array(
+                construct_start_combinations_helper(init_dict['data'], init_dict['total_data'], init_dict['num_cps'],
+                                                    m + 1))
+            if init_dict['multiprocessing']:
+                with lock:
+                    completion_control.value += 1
+                    for j in range(0, init_dict['num_cps']):
+                        sum_cp_probs[j, init_dict['cp_prob_grid'] == current_MC_config[j]] += init_dict['prob_cp'][m]
+                        sum_cp_probs_count[j, init_dict['cp_prob_grid'] == current_MC_config[j]] += 1
+            else:
+                completion_control.value += 1
+                for j in range(0, init_dict['num_cps']):
+                    sum_cp_probs[j, init_dict['cp_prob_grid'] == current_MC_config[j]] += init_dict['prob_cp'][m]
+                    sum_cp_probs_count[j, init_dict['cp_prob_grid'] == current_MC_config[j]] += 1
+
+
 
     def compute_CP_pdfs(self, multiprocessing=True, num_processes='half', print_CPU_count=False, print_progress=True):
         sum_cp_probs = mp.Array('d', self.n_cp * self.N)
         sum_cp_probs_count = mp.Array('d', self.n_cp * self.N)
-
+        if not hasattr(self, 'completion_control'):
+            self.completion_control = mp.Value('i', 0)
+        if not hasattr(self, 'efficient_memory_management'):
+            self.efficient_memory_management = False
         if multiprocessing:
             if print_CPU_count:
                 print('CPU count: ', mp.cpu_count())
@@ -539,17 +582,25 @@ class CPSegmentFit:
                 print('ERROR: Type of num_processes must be int or str.')
             if print_CPU_count:
                 print('CPUs used for subprocesses: ' + str(processes))
-            with mp.Pool(processes=processes, initializer=self.init_parallel_CP_pdf, initargs=(
-            self.MC_cp_configurations, self.n_cp, self.x, self.prob_cp, sum_cp_probs, sum_cp_probs_count,
-            print_progress)) as pool:
-                pool.map_async(self.batched_compute_CP_pdfs, [m for m in range(self.n_MC_samples)])
-                pool.close()
-                pool.join()
+            chunksize, extra = divmod(self.total_batches, processes * 4)
+            if extra:
+                chunksize += 1
+            with mp.Manager() as manager:
+                lock = manager.Lock()
+                with mp.Pool(processes=processes, initializer=self.init_parallel_CP_pdf, initargs=(
+                self.MC_cp_configurations, self.n_cp, self.x, self.prob_cp, sum_cp_probs, self.efficient_memory_management, sum_cp_probs_count,
+                print_progress, self.completion_control, multiprocessing, self.n_MC_samples, self.x[1:-1])) as pool:
+                    pool.starmap_async(self.batched_compute_CP_pdfs, [(m, lock) for m in range(self.n_MC_samples)], error_callback = custom_error_callback, chunksize = chunksize)
+                    pool.close()
+                    pool.join()
+            print(str(self.completion_control.value) + ' tasks of ' + str(self.n_MC_samples) + ' are executed.')
         else:
             self.init_parallel_CP_pdf(self.MC_cp_configurations, self.n_cp, self.x, self.prob_cp, sum_cp_probs,
-                                      sum_cp_probs_count, print_progress)
+                                      self.efficient_memory_management, sum_cp_probs_count, print_progress, self.completion_control,
+                                      multiprocessing, self.n_MC_samples, self.x[1:-1])
             for m in range(self.n_MC_samples):
-                self.batched_compute_CP_pdfs(m)
+                lock = None
+                self.batched_compute_CP_pdfs(m, lock)
 
         sum_cp_probs = np.array(sum_cp_probs).reshape((self.n_cp, self.N))
         sum_cp_probs_count = np.array(sum_cp_probs_count).reshape((self.n_cp, self.N))
@@ -569,3 +620,6 @@ class CPSegmentFit:
             weighted_configs[i, :] = self.MC_cp_configurations[i, :] * self.prob_cp[i]
 
         self.expected_values_CP_positions = np.sum(weighted_configs, axis=0)
+
+def custom_error_callback(error):
+    print(error, flush=True)

@@ -1,5 +1,8 @@
 numpy
 matplotlib
 scipy
-numba
 emcee
+multiprocessing
+ipyparallel
+math
+celerite
