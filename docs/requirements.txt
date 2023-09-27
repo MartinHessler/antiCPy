@@ -3,5 +3,4 @@ matplotlib
 scipy
 emcee
 ipyparallel
-math
 celerite
