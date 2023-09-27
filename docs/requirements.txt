@@ -4,3 +4,5 @@ scipy
 emcee
 ipyparallel
 celerite
+statsmodels
+scikit-learn
