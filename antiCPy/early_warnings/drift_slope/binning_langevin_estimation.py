@@ -107,7 +107,7 @@ class BinningLangevinEstimation(LangevinEstimation):
 
 	def log_posterior(self,theta):
 		"""
-		Calculates the logarithmic posterior for a given tuple of parameters :math:`\theta`.
+		Calculates the logarithmic posterior for a given tuple of parameters :math:`\\theta`.
 		"""
 		self.theta = theta
 		self._bin_MAP = np.zeros(self._bin_num)
@@ -117,7 +117,7 @@ class BinningLangevinEstimation(LangevinEstimation):
 
 	def neg_log_posterior(self, theta):
 		"""
-		Calculates the negative logarithmic posterior for a given tuple of parameters :math:`\theta`.
+		Calculates the negative logarithmic posterior for a given tuple of parameters :math:`\\theta`.
 		"""
 		return (-1) * self.log_posterior(theta)
 
