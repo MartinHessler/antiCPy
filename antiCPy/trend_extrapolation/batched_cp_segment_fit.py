@@ -11,6 +11,7 @@ class BatchedCPSegmentFit(CPSegmentFit):
     the change point configurations with the corresponding segment fit in a strongly parallelized batch-wise manner to avoid
     memory errors and speed up computation times significantly in the case of high amount of data and
     change point configurations.
+
     .. important::
        In any case make sure that you use
            .. code-block::
@@ -18,11 +19,13 @@ class BatchedCPSegmentFit(CPSegmentFit):
                ...
                if __name__ == '__main__':
                multiprocessing.set_start_method('spawn').
+
        Windows should use the method ``'spawn'`` by default. But in general it depends on your system, so it might be better
        to set the option always before using a ``BatchedSegmentFit`` object. If you use a Linux distribution the method to create
        new workers is usually `fork`. This will copy some features of the main process. Amongst others the needed ``lock`` to
        avoid race conditions, might be copied and the new process will freeze. After longer runs this leads to all processes
        getting frozen and killed after some time. You end up with incomplete tasks, but without error message.
+
 	"""
 
     def __init__(self, x_data, y_data, number_expected_changepoints, num_MC_cp_samples, batchsize=5000,
