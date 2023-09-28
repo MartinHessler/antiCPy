@@ -1,8 +1,8 @@
 
 .. _The dominant_eigenvalue subpackage documentation:
 
-The ``dominant_eigenvalue`` package
------------------------------------
+The "dominant_eigenvalue" package
+---------------------------------
 
 The package is designed by procedural programming and contains various functions to
 optimize the method's parameters, perform the dominant eigenvalue analysis and visualize

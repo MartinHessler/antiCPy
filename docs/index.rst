@@ -3,7 +3,7 @@
 
 
 Welcome to `antiCPy's` documentation!
-===================================
+=====================================
 
 The package abbreviation **antiCPy** stands for ''**anti**\ cipate **C**\ ritical **P**\ oints (and if you like **C**\
 hange **P**\ oints) with **Py**\ thon''. The vision of the `antiCPy` package is designing a package collection of state-of-the-art
@@ -46,7 +46,7 @@ The package can be installed via ::
 
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 2
    :caption: Contents:
    
    early_warnings/early_warnings

@@ -15,7 +15,6 @@ class BatchedCPSegmentFit(CPSegmentFit):
 	change point configurations.
 
 	.. important::
-
         In any case make sure that you use
             .. code-block::
                 import multiprocessing
