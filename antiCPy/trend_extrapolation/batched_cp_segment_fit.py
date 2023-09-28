@@ -1,7 +1,5 @@
 import multiprocessing as mp
 
-import numpy as np
-
 from antiCPy.trend_extrapolation.cp_segment_fit import CPSegmentFit
 
 
