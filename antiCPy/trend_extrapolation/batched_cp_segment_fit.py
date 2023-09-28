@@ -14,11 +14,11 @@ class BatchedCPSegmentFit(CPSegmentFit):
 
     .. important::
        In any case make sure that you use
-           .. code-block::
-               import multiprocessing
-               ...
-               if __name__ == '__main__':
-               multiprocessing.set_start_method('spawn').
+       .. code-block::
+           import multiprocessing
+           ...
+           if __name__ == '__main__':
+           multiprocessing.set_start_method('spawn').
 
        Windows should use the method ``'spawn'`` by default. But in general it depends on your system, so it might be better
        to set the option always before using a ``BatchedSegmentFit`` object. If you use a Linux distribution the method to create

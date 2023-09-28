@@ -57,7 +57,7 @@ dimension of :math:`d =3` the number of false next neighbours tends to zero as s
 
 .. _cmap:
 
-.. figure:: docs/early_warnings/dominant_eigenvalue/images/fnn_nm_cmap.png
+.. image:: /docs/early_warnings/dominant_eigenvalue/images/fnn_nm_cmap.png
     :alt: alternate text
     :align: center
     :figclass: align-center
@@ -67,7 +67,7 @@ dimension of :math:`d =3` the number of false next neighbours tends to zero as s
 
 .. _quickfnn:
 
-.. figure:: docs/early_warnings/dominant_eigenvalue/images/quickfnn.png
+.. image:: docs/early_warnings/dominant_eigenvalue/images/quickfnn.png
     :alt: alternate text
     :align: center
     :figclass: align-center
@@ -90,7 +90,7 @@ in the following code and figure avg_DD_:
 
 .. _avg_DD:
 
-.. figure:: docs/early_warnings/dominant_eigenvalue/images/avg_DD.png
+.. image:: docs/early_warnings/dominant_eigenvalue/images/avg_DD.png
     :alt: alternate text
     :align: center
     :figclass: align-center
@@ -132,7 +132,7 @@ via a Gaussian filter and subtracted from the original non-stationary data.
 
 .. _DEV_ricker_type:
 
-.. figure:: docs/early_warnings/dominant_eigenvalue/images/DEV_ricker_type.png
+.. image:: docs/early_warnings/dominant_eigenvalue/images/DEV_ricker_type.png
     :alt: alternate text
     :align: center
     :figclass: align-center
@@ -142,7 +142,7 @@ via a Gaussian filter and subtracted from the original non-stationary data.
 
 .. _gauss_ricker_type:
 
-.. figure:: docs/early_warnings/dominant_eigenvalue/images/gauss_ricker_type.png
+.. image:: docs/early_warnings/dominant_eigenvalue/images/gauss_ricker_type.png
     :alt: alternate text
     :align: center
     :figclass: align-center
@@ -205,7 +205,7 @@ In the end the results could look similar to these in the figures DEV_excercise_
 
 .. _DEV_excercise:
 
-.. figure:: docs/early_warnings/dominant_eigenvalue/images/AR_absDEV_ws1200_1000_1500_3models.png
+.. image:: docs/early_warnings/dominant_eigenvalue/images/AR_absDEV_ws1200_1000_1500_3models.png
     :alt: alternate text
     :align: center
     :figclass: align-center
@@ -215,7 +215,7 @@ In the end the results could look similar to these in the figures DEV_excercise_
 
 .. _gauss_excercise:
 
-.. figure:: docs/early_warnings/dominant_eigenvalue/images/AR_imaginary_plane_ws1200_1000_1500_3models.png
+.. image:: docs/early_warnings/dominant_eigenvalue/images/AR_imaginary_plane_ws1200_1000_1500_3models.png
     :alt: alternate text
     :align: center
     :figclass: align-center
