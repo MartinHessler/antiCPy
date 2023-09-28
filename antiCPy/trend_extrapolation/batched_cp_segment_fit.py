@@ -13,8 +13,7 @@ class BatchedCPSegmentFit(CPSegmentFit):
     change point configurations.
 
     .. important::
-        In any case make sure that you use
-        .. code-block:: python
+        In any case make sure that you use::
             import multiprocessing
             ...
             if __name__ == '__main__':
