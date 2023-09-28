@@ -167,7 +167,7 @@ class NonMarkovEstimation(LangevinEstimation):
             This is especially necessary, if you enable the time scale separation, since the default array of ones will
             contradict normally to the assumed two time scale model.
 
-    :type max_likelihood_starting_guesses: One-dimensional numpy array of floats.
+    :type max_likelihood_starting_guesses: One-dimensional numpy array of float
 
     """
     def __init__(self, data, time, X_drift_model='3rd order polynomial',
@@ -349,7 +349,7 @@ class NonMarkovEstimation(LangevinEstimation):
         is given by the `scales` variable.
         If two separate time scales are assumed via ``activate_time_scale_separation_prior=True``, the ``slow_process``
         and the ``time_scale_separation_factor`` can be specified. The time scales for each sampled parameter set are
-        approximated by :math:`\lvert {\\frac{1}{f'(x)}\\rvert` and :math:`\lvert\\frac{1}{f'(y)}\\rvert` with prime denoting derivative with
+        approximated by :math:`\lVert \\frac{1}{f'(x)}\\rVert` and :math:`\lVert\\frac{1}{f'(y)}\\rVert` with prime denoting derivative with
         respect to the variables :math:`x` and :math:`y`, respectively.
         '''
 
@@ -505,7 +505,7 @@ class NonMarkovEstimation(LangevinEstimation):
     def log_likelihood(theta, data, X_drift_model, Y_drift_model, X_coupling_term, Y_diffusion_model, Y_model, dt):
         '''
         Returns the logarithmic likelihood of the data for the given model parametrization. It is given by the modified
-        short-time propagator of [Willers and Kamps,Eur.Phys.J.B 94 (2021) 7, 149] [Willers2021]_ .
+        short-time propagator of [Willers2021]_ .
         '''
         x_iplus1 = data[2:]
         x_i = data[1:-1]
@@ -777,7 +777,7 @@ class NonMarkovEstimation(LangevinEstimation):
         :type n_OU_param_samples: int
         :param cred_percentiles: Two entries to define the percentiles of the calculated credibility bands
                         of the estimated parameters. Default is `numpy.array([16,1])`.
-        :type cred_percentiles: One-dimensional numpy array of integers.
+        :type cred_percentiles: One-dimensional numpy array of int
         :param print_AC_tau: If `True` the estimated autocorrelation lengths of the Markov chains is shown.
                         The maximum length is used for thinning of the chains. Default is `False`.
         :type prind_AC_tau: Boolean
@@ -815,30 +815,26 @@ class NonMarkovEstimation(LangevinEstimation):
                         fast time scale estimate times the ``time_scale_separation_factor`` is printed. Second, the slow
                         time scale estimate and third, a check up whether the desired time scale separation is fulfilled
                         are printed.
-
         :type print_time_scale_info: bool
         :param MCMC_parallelization_method: Default is `None`. If `None` the basic serial MCMC computation is performed. If
                         `MCMC_parallelization_method = 'multiprocessing'`, a multiprocessing pool with `num_processes`
                         is used to accelerate MCMC sampling. If `MCMC_parallelization_method = 'chop_chain'` is used, the
                         total length of the desired Markov chain is divided into `'chop_chain'` parts each of which is
                         sampled in parallel and joined together in the end.
-
         :type MCMC_parallelization_method: str
         :param num_processes: Default is ``'half'``. If ``half``, almost half of the CPU kernels are used. If  ``'all'``, all CPU kernels
                         are used. If integer number, the defined number of CPU kernels is used for multiprocessing.
-
 		:type num_processes: str, int
 		:param num_chop_chains: Number by which the total length of the Markov chain is divided. Each slice is sampled in parallel and
 		                joined together in the end of the calculations.
-
 		:type num_chop_chains: int
 		:param MCMC_AC_estimate: If default `'standard'` is used, emcee's ``.get_autocorr_time()`` is applied to estimate the
 		                sampled Markov chain's autocorrelation length for thinning. In some cases the estimation procedure requires longer chains
 		                than you can run and does not converge at all. In such situations you can try to estimate the autocorrelation length with
 		                parametric models following the suggestions of the `emcee documentation <https://emcee.readthedocs.io/en/stable/tutorials/autocorr/>`_
 		                via ``MCMC_AC_estimate = 'alternative'``.
-
 		:type MCMC_AC_estimate: str
+
         '''
         self.data_window = np.roll(self.data, shift=- self.window_shift)[:self.window_size]
         self.time_window = np.roll(self.time, shift=- self.window_shift)[:self.window_size]
@@ -1076,18 +1072,16 @@ class NonMarkovEstimation(LangevinEstimation):
                         sampled in parallel and joined together in the end.
         :type MCMC_parallelization_method: str
         :param num_processes: Default is ``'half'``. If ``half``, almost half of the CPU kernels are used. If  ``'all'``, all CPU kernels
-                         are used. If integer number, the defined number of CPU kernels is used for multiprocessing.
+                        are used. If integer number, the defined number of CPU kernels is used for multiprocessing.
 		:type num_processes: str, int
 		:param num_chop_chains: Number by which the total length of the Markov chain is divided. Each slice is sampled in parallel and
-		                 joined together in the end of the calculations.
-
+		                joined together in the end of the calculations.
 		:type num_chop_chains: int
 		:param MCMC_AC_estimate: If default `'standard'` is used, emcee's ``.get_autocorr_time()`` is applied to estimate the
-		                 sampled Markov chain's autocorrelation length for thinning. In some cases the estimation procedure requires longer chains
-		                 than you can run and does not converge at all. In such situations you can try to estimate the autocorrelation length with
-		                 parametric models following the suggestions of the `emcee documentation <https://emcee.readthedocs.io/en/stable/tutorials/autocorr/>`_
-		                 via ``MCMC_AC_estimate = 'alternative'``.
-
+		                sampled Markov chain's autocorrelation length for thinning. In some cases the estimation procedure requires longer chains
+		                than you can run and does not converge at all. In such situations you can try to estimate the autocorrelation length with
+		                parametric models following the suggestions of the `emcee documentation <https://emcee.readthedocs.io/en/stable/tutorials/autocorr/>`_
+		                via ``MCMC_AC_estimate = 'alternative'``.
 		:type MCMC_AC_estimate: str
         '''
         self.window_size = window_size

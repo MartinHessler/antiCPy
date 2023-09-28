@@ -6,7 +6,7 @@ class BinningLangevinEstimation(LangevinEstimation):
 	"""
 	Child class of the ``LangevinEstimation`` class. Inherits all features and methods from the
 	parent class. The class is used to apply a computation shortcut of the implemented resilience
-	screening methods by a data binning approach (cf. [David Kleinhans. Phys. Rev. E 85(2), pp. 026705 (2012)]).
+	screening methods by a data binning approach (cf. [Kleinhans2012]_ ).
 	Needed attributes and (overloaded) methods are provided.
 
 	:param _bin_centers: Attribute that contains the bin centers of the time series.
