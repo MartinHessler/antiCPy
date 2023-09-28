@@ -778,7 +778,7 @@ class LangevinEstimation(RocketFastResilienceEstimation):
                                              gauss_filter_mode = 'reflect',gauss_filter_sigma = 6,
                                              gauss_filter_order = 0, gauss_filter_cval = 0.0,
                                              gauss_filter_truncate = 4.0, plot_detrending = False,
-                                             MCMC_parallelization_method = None, num_processes = None,
+                                             MCMC_parallelization_method = None, num_processes = 'half',
                                              num_chop_chains = None):
         '''
         Performs an automated window scan with defined ``window_shift`` over the whole time series. In each
@@ -888,20 +888,21 @@ class LangevinEstimation(RocketFastResilienceEstimation):
                         ``self.slow_trend`` and the detrended version are shown.
         :type plot_detrending: bool
         :param MCMC_parallelization_method: Default is `None`. If `None` the basic serial MCMC computation is performed. If
-                        `MCMC_parallelization_method = 'multiprocessing'`, a multiprocessing pool with `num_processes`
-                        is used to accelerate MCMC sampling. If `MCMC_parallelization_method = 'chop_chain'` is used, the
-                        total length of the desired Markov chain is divided into `'chop_chain'` parts each of which is
+                        ``MCMC_parallelization_method = 'multiprocessing'``, a multiprocessing pool with `num_processes`
+                        is used to accelerate MCMC sampling. If ``MCMC_parallelization_method = 'chop_chain'`` is used, the
+                        total length of the desired Markov chain is divided into ``'chop_chain'`` parts each of which is
                         sampled in parallel and joined together in the end.
         :type MCMC_parallelization_method: str
-        :param num_processes: Default is ``'half'``. If ``'half'``, almost half of the CPU kernels are used. If ``'all'``,
+        :param num_processes: Default is ``'half'``. If ``'half``, almost half of the CPU kernels are used. If ``'all'``,
                         all CPU kernels are used. If integer number, the defined number of CPU kernels is used for
                         multiprocessing.
-		:type num_processes: int
+        :type num_processes: str or int
 		:param num_chop_chains: Number by which the total length of the Markov chain is divided. Each slice is sampled
 		                in parallel and joined together in the end of the calculations.
 		:type num_chop_chains: int
 
         '''
+
         cred_percentiles = np.array(cred_percentiles)
         self.window_size = window_size
         self.window_shift = window_shift
