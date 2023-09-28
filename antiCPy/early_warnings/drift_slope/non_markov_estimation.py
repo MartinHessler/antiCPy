@@ -349,7 +349,7 @@ class NonMarkovEstimation(LangevinEstimation):
         is given by the `scales` variable.
         If two separate time scales are assumed via ``activate_time_scale_separation_prior=True``, the ``slow_process``
         and the ``time_scale_separation_factor`` can be specified. The time scales for each sampled parameter set are
-        approximated by :math:`\lVert \\frac{1}{f'(x)}\\rVert` and :math:`\lVert\\frac{1}{f'(y)}\\rVert` with prime denoting derivative with
+        approximated by :math:`\left\lvert \\frac{1}{f'(x)}\\right\\rVert` and :math:`\left\lvert\\frac{1}{f'(y)}\\right\\rVert` with prime denoting derivative with
         respect to the variables :math:`x` and :math:`y`, respectively.
         '''
 
@@ -822,9 +822,10 @@ class NonMarkovEstimation(LangevinEstimation):
                         total length of the desired Markov chain is divided into `'chop_chain'` parts each of which is
                         sampled in parallel and joined together in the end.
         :type MCMC_parallelization_method: str
-        :param num_processes: Default is ``'half'``. If ``half``, almost half of the CPU kernels are used. If  ``'all'``, all CPU kernels
-                        are used. If integer number, the defined number of CPU kernels is used for multiprocessing.
-		:type num_processes: str, int
+        :param num_processes: Default is ``'half'``. If ``half``, almost half of the CPU kernels are used. If  ``'all'`` ,
+                        all CPU kernels are used. If integer number, the defined number of CPU kernels is used for
+                        multiprocessing.
+		:type num_processes: str or int
 		:param num_chop_chains: Number by which the total length of the Markov chain is divided. Each slice is sampled in parallel and
 		                joined together in the end of the calculations.
 		:type num_chop_chains: int
@@ -1073,7 +1074,7 @@ class NonMarkovEstimation(LangevinEstimation):
         :type MCMC_parallelization_method: str
         :param num_processes: Default is ``'half'``. If ``half``, almost half of the CPU kernels are used. If  ``'all'``, all CPU kernels
                         are used. If integer number, the defined number of CPU kernels is used for multiprocessing.
-		:type num_processes: str, int
+		:type num_processes: str or int
 		:param num_chop_chains: Number by which the total length of the Markov chain is divided. Each slice is sampled in parallel and
 		                joined together in the end of the calculations.
 		:type num_chop_chains: int
@@ -1083,6 +1084,7 @@ class NonMarkovEstimation(LangevinEstimation):
 		                parametric models following the suggestions of the `emcee documentation <https://emcee.readthedocs.io/en/stable/tutorials/autocorr/>`_
 		                via ``MCMC_AC_estimate = 'alternative'``.
 		:type MCMC_AC_estimate: str
+
         '''
         self.window_size = window_size
         self.window_shift = window_shift
