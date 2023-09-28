@@ -25,7 +25,9 @@ This is the `antiCPy.early_warnings` package. It contains two resilience or earl
 .. hint::
     The `dominant_eigenvalue` package is procedural up to now. Therefore, its modules contain
     a collection of functions. In consequence, the import has to be done via
+
     .. code-block::
+
         # correct import
         import antiCPy.early_warnings.dominant_eigenvalue as dev
         ...
@@ -36,7 +38,9 @@ This is the `antiCPy.early_warnings` package. It contains two resilience or earl
 
     In case you want to have easy access to a subset of functionalities of `antiCPy` including the `dominant_eigenvalue`
     package you can use the following work arounds:
+
     .. code-block::
+
         import antiCPy.early_warnings as ews
         ...
         ews.AR_EV_calc(...)

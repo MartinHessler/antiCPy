@@ -349,7 +349,7 @@ class NonMarkovEstimation(LangevinEstimation):
         is given by the `scales` variable.
         If two separate time scales are assumed via ``activate_time_scale_separation_prior=True``, the ``slow_process``
         and the ``time_scale_separation_factor`` can be specified. The time scales for each sampled parameter set are
-        approximated by :math:`\lvert {\\frac{1}{f'(x)}\rvert` and :math:`\lvert\\frac{1}{f'(y)}\rvert` with prime denoting derivative with
+        approximated by :math:`\lvert {\\frac{1}{f'(x)}\\rvert` and :math:`\lvert\\frac{1}{f'(y)}\\rvert` with prime denoting derivative with
         respect to the variables :math:`x` and :math:`y`, respectively.
         '''
 
@@ -505,7 +505,7 @@ class NonMarkovEstimation(LangevinEstimation):
     def log_likelihood(theta, data, X_drift_model, Y_drift_model, X_coupling_term, Y_diffusion_model, Y_model, dt):
         '''
         Returns the logarithmic likelihood of the data for the given model parametrization. It is given by the modified
-        short-time propagator of [Willers and Kamps,Eur.Phys.J.B 94 (2021) 7, 149].
+        short-time propagator of [Willers and Kamps,Eur.Phys.J.B 94 (2021) 7, 149] [Willers2021]_ .
         '''
         x_iplus1 = data[2:]
         x_i = data[1:-1]
