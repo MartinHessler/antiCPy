@@ -15,13 +15,13 @@ class BatchedCPSegmentFit(CPSegmentFit):
 	change point configurations.
 
 	.. important::
-	    In any case make sure that you use
 
-	        .. code-block::
-	            import multiprocessing
-	            ...
-	            if __name__ == '__main__':
-	                multiprocessing.set_start_method('spawn').
+        In any case make sure that you use
+            .. code-block::
+                import multiprocessing
+                ...
+                if __name__ == '__main__':
+                multiprocessing.set_start_method('spawn').
 
 	    Windows should use the method ``'spawn'`` by default. But in general it depends on your system, so it might be better
 	    to set the option always before using a ``BatchedSegmentFit`` object. If you use a Linux distribution the method to create
@@ -292,6 +292,7 @@ class BatchedCPSegmentFit(CPSegmentFit):
 
 		:param sigma_multiples: Specifies which multiple of standard deviations is chosen to determine the
 		        ``upper_uncertainty_bound`` and the ``lower_uncertainty_bound``. Default is 3.
+
 		:type sigma_multiples: float
 
 		:param integration_method: Determines the integration method to compute the change point probability.
@@ -299,6 +300,7 @@ class BatchedCPSegmentFit(CPSegmentFit):
 			    ``'Simpson rule'`` can be chosen under the assumption of one change point.
 			    Sometimes the Simpson rule tends to be unstable. The method should be the same as the
 			    integration method used in ``calculate_marginal_cp_pdf(...)``.
+
 		:type integration_method: str
 
 		:param print_batch_info: If ``True``, computed to total batches are printed. Default is ``False''.
@@ -316,6 +318,7 @@ class BatchedCPSegmentFit(CPSegmentFit):
 
 		:param num_processes: Default is ``'half'``. If ``half``, almost half of the CPU kernels are used. If  ``'all'``, all CPU kernels
 		        are used. If integer number, the defined number of CPU kernels is used for multiprocessing.
+
 		:type num_processes: str, int
 
 		:param print_CPU_count: If ``True``, the total number of available CPU kernels is printed. Default is ``False``.

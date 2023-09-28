@@ -22,6 +22,7 @@ avoids memory issues for a complicated CP segment fit with an arbitrary number o
 
 .. automodule:: antiCPy.trend_extrapolation.batched_cp_segment_fit
     :members:
+    :show-inheritance:
 
 .. automodule:: antiCPy.trend_extrapolation.cp_segment_fit
     :members:
