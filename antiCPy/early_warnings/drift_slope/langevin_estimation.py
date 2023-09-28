@@ -897,9 +897,9 @@ class LangevinEstimation(RocketFastResilienceEstimation):
                         all CPU kernels are used. If integer number, the defined number of CPU kernels is used for
                         multiprocessing.
         :type num_processes: str or int
-		:param num_chop_chains: Number by which the total length of the Markov chain is divided. Each slice is sampled
-		                in parallel and joined together in the end of the calculations.
-		:type num_chop_chains: int
+        :param num_chop_chains: Number by which the total length of the Markov chain is divided. Each slice is sampled
+                        in parallel and joined together in the end of the calculations.
+        :type num_chop_chains: int
 
         '''
 
