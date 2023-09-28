@@ -36,7 +36,6 @@ This is the `antiCPy.early_warnings` package. It contains two resilience or earl
 
     In case you want to have easy access to a subset of functionalities of `antiCPy` including the `dominant_eigenvalue`
     package you can use the following work arounds:
-
     .. code-block::
         import antiCPy.early_warnings as ews
         ...
