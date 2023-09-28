@@ -349,7 +349,7 @@ class NonMarkovEstimation(LangevinEstimation):
         is given by the `scales` variable.
         If two separate time scales are assumed via ``activate_time_scale_separation_prior=True``, the ``slow_process``
         and the ``time_scale_separation_factor`` can be specified. The time scales for each sampled parameter set are
-        approximated by :math:`\left\lvert \\frac{1}{f'(x)}\\right\\rVert` and :math:`\left\lvert\\frac{1}{f'(y)}\\right\\rVert` with prime denoting derivative with
+        approximated by :math:`\left\lvert \\frac{1}{f'(x)}\\right\\rvert` and :math:`\left\lvert\\frac{1}{f'(y)}\\right\\rvert` with prime denoting derivative with
         respect to the variables :math:`x` and :math:`y`, respectively.
         '''
 
@@ -822,7 +822,7 @@ class NonMarkovEstimation(LangevinEstimation):
                         total length of the desired Markov chain is divided into `'chop_chain'` parts each of which is
                         sampled in parallel and joined together in the end.
         :type MCMC_parallelization_method: str
-        :param num_processes: Default is ``'half'``. If ``half``, almost half of the CPU kernels are used. If  ``'all'`` ,
+        :param num_processes: Default is ``None``. If ``'half'``, almost half of the CPU kernels are used. If  ``'all'`` ,
                         all CPU kernels are used. If integer number, the defined number of CPU kernels is used for
                         multiprocessing.
         :type num_processes: str or int
@@ -1071,7 +1071,7 @@ class NonMarkovEstimation(LangevinEstimation):
                         total length of the desired Markov chain is divided into `'chop_chain'` parts each of which is
                         sampled in parallel and joined together in the end.
         :type MCMC_parallelization_method: str
-        :param num_processes: Default is ``'half'``. If ``half``, almost half of the CPU kernels are used. If  ``'all'``, all CPU kernels
+        :param num_processes: Default is ``None``. If ``'half'``, almost half of the CPU kernels are used. If  ``'all'``, all CPU kernels
                         are used. If integer number, the defined number of CPU kernels is used for multiprocessing.
         :type num_processes: str or int
         :param num_chop_chains: Number by which the total length of the Markov chain is divided. Each slice is sampled in parallel and
@@ -1231,7 +1231,7 @@ class NonMarkovEstimation(LangevinEstimation):
         credibility bands are computed and saved in the `slope_storage` and the `noise_level_storage`.
 
         :param window_size: Time window size.
-        :rytpe window_size: int
+        :type window_size: int
         :param window_shift: The rolling time window is shifted about `window_shift` data points.
         :type window_shift: int
         :param cred_percentiles: Two entries to define the percentiles of the calculated credibility bands

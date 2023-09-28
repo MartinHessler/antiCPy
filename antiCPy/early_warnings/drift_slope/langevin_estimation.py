@@ -778,7 +778,7 @@ class LangevinEstimation(RocketFastResilienceEstimation):
                                              gauss_filter_mode = 'reflect',gauss_filter_sigma = 6,
                                              gauss_filter_order = 0, gauss_filter_cval = 0.0,
                                              gauss_filter_truncate = 4.0, plot_detrending = False,
-                                             MCMC_parallelization_method = None, num_processes = 'half',
+                                             MCMC_parallelization_method = None, num_processes = None,
                                              num_chop_chains = None):
         '''
         Performs an automated window scan with defined ``window_shift`` over the whole time series. In each
@@ -893,7 +893,7 @@ class LangevinEstimation(RocketFastResilienceEstimation):
                         total length of the desired Markov chain is divided into ``'chop_chain'`` parts each of which is
                         sampled in parallel and joined together in the end.
         :type MCMC_parallelization_method: str
-        :param num_processes: Default is ``'half'``. If ``'half``, almost half of the CPU kernels are used. If ``'all'``,
+        :param num_processes: Default is ``None``. If ``'half``, almost half of the CPU kernels are used. If ``'all'``,
                         all CPU kernels are used. If integer number, the defined number of CPU kernels is used for
                         multiprocessing.
         :type num_processes: str or int
