@@ -61,7 +61,7 @@ The original implementation [Grziwotz2023]_ uses sequential maps (S-maps) to est
 the procedure. We replaced the S-map approach by a simple autoregression scheme of order :math:`p` (AR(:math:`p`)).
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
    :caption: Contents:
 
    drift_slope/drift_slope

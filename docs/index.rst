@@ -46,7 +46,7 @@ The package can be installed via ::
 
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: Contents:
    
    early_warnings/early_warnings
