@@ -59,7 +59,7 @@ dimension of :math:`d =3` the number of false next neighbours tends to zero as s
 
 .. _cmap:
 
-.. image:: /docs/early_warnings/dominant_eigenvalue/images/fnn_nm_cmap.png
+.. figure:: images/fnn_nm_cmap.png
     :alt: alternate text
     :align: center
     :figclass: align-center
