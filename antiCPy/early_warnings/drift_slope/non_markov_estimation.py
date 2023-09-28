@@ -825,17 +825,16 @@ class NonMarkovEstimation(LangevinEstimation):
         :param num_processes: Default is ``'half'``. If ``half``, almost half of the CPU kernels are used. If  ``'all'`` ,
                         all CPU kernels are used. If integer number, the defined number of CPU kernels is used for
                         multiprocessing.
-		:type num_processes: str or int
-		:param num_chop_chains: Number by which the total length of the Markov chain is divided. Each slice is sampled in parallel and
-		                joined together in the end of the calculations.
-		:type num_chop_chains: int
-		:param MCMC_AC_estimate: If default `'standard'` is used, emcee's ``.get_autocorr_time()`` is applied to estimate the
-		                sampled Markov chain's autocorrelation length for thinning. In some cases the estimation procedure requires longer chains
-		                than you can run and does not converge at all. In such situations you can try to estimate the autocorrelation length with
-		                parametric models following the suggestions of the `emcee documentation <https://emcee.readthedocs.io/en/stable/tutorials/autocorr/>`_
-		                via ``MCMC_AC_estimate = 'alternative'``.
-		:type MCMC_AC_estimate: str
-
+        :type num_processes: str or int
+        :param num_chop_chains: Number by which the total length of the Markov chain is divided. Each slice is sampled in parallel and
+                        joined together in the end of the calculations.
+        :type num_chop_chains: int
+        :param MCMC_AC_estimate: If default `'standard'` is used, emcee's ``.get_autocorr_time()`` is applied to estimate th
+                        sampled Markov chain's autocorrelation length for thinning. In some cases the estimation procedure requires longer chains
+                        than you can run and does not converge at all. In such situations you can try to estimate the autocorrelation length with
+                        parametric models following the suggestions of the `emcee documentation <https://emcee.readthedocs.io/en/stable/tutorials/autocorr/>`_
+                        via ``MCMC_AC_estimate = 'alternative'``.
+        :type MCMC_AC_estimate: str
         '''
         self.data_window = np.roll(self.data, shift=- self.window_shift)[:self.window_size]
         self.time_window = np.roll(self.time, shift=- self.window_shift)[:self.window_size]
@@ -1074,18 +1073,18 @@ class NonMarkovEstimation(LangevinEstimation):
         :type MCMC_parallelization_method: str
         :param num_processes: Default is ``'half'``. If ``half``, almost half of the CPU kernels are used. If  ``'all'``, all CPU kernels
                         are used. If integer number, the defined number of CPU kernels is used for multiprocessing.
-		:type num_processes: str or int
-		:param num_chop_chains: Number by which the total length of the Markov chain is divided. Each slice is sampled in parallel and
-		                joined together in the end of the calculations.
-		:type num_chop_chains: int
-		:param MCMC_AC_estimate: If default `'standard'` is used, emcee's ``.get_autocorr_time()`` is applied to estimate the
-		                sampled Markov chain's autocorrelation length for thinning. In some cases the estimation procedure requires longer chains
-		                than you can run and does not converge at all. In such situations you can try to estimate the autocorrelation length with
-		                parametric models following the suggestions of the `emcee documentation <https://emcee.readthedocs.io/en/stable/tutorials/autocorr/>`_
-		                via ``MCMC_AC_estimate = 'alternative'``.
-		:type MCMC_AC_estimate: str
-
+        :type num_processes: str or int
+        :param num_chop_chains: Number by which the total length of the Markov chain is divided. Each slice is sampled in parallel and
+                        joined together in the end of the calculations.
+        :type num_chop_chains: int
+        :param MCMC_AC_estimate: If default `'standard'` is used, emcee's ``.get_autocorr_time()`` is applied to estimate the
+                        sampled Markov chain's autocorrelation length for thinning. In some cases the estimation procedure requires longer chains
+                        than you can run and does not converge at all. In such situations you can try to estimate the autocorrelation length with
+                        parametric models following the suggestions of the `emcee documentation <https://emcee.readthedocs.io/en/stable/tutorials/autocorr/>`_
+                        via ``MCMC_AC_estimate = 'alternative'``.
+        :type MCMC_AC_estimate: str
         '''
+
         self.window_size = window_size
         self.window_shift = window_shift
         self.data_window = np.zeros(window_size)
