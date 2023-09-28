@@ -31,7 +31,7 @@ class NonMarkovEstimation(LangevinEstimation):
     :type X_coupling_term: str
     :param Y_model: Default is ``'Ornstein-Uhlenbeck noise'``. It defines automatically the Y drift model to be linear without offset
         and the Y diffusion to be constant. The drift coefficient is given by :math:`-\\frac{1}{\\theta_5^2}` .
-        The diffusion coefficient is given by :math:`-\\frac{1}{\\theta_5}` .
+        The diffusion coefficient is given by :math:`\\frac{1}{\\theta_5}` .
 
     :type Y_model: str
     :param Y_drift_model: Other model settings than ``Y_model = 'Ornstein-Uhlenbeck noise'`` are not tested yet. In principle,
@@ -161,7 +161,9 @@ class NonMarkovEstimation(LangevinEstimation):
     :param max_likelihood_starting_guesses: If ``None``, the MAP starting guesses (essentially maximum likelihood because of flat priors) are
         are computed starting with all parameters set to one. In general, you can pass a one-dimensional numpy array with
         ``ndim`` entries to this argument to define different starting values.
+
         .. note::
+
             This is especially necessary, if you enable the time scale separation, since the default array of ones will
             contradict normally to the assumed two time scale model.
 
@@ -347,7 +349,7 @@ class NonMarkovEstimation(LangevinEstimation):
         is given by the `scales` variable.
         If two separate time scales are assumed via ``activate_time_scale_separation_prior=True``, the ``slow_process``
         and the ``time_scale_separation_factor`` can be specified. The time scales for each sampled parameter set are
-        approximated by :math:`\\abs{\\frac{1}{f'(x)}}` and :math:`\\abs{\\frac{1}{f'(y)}}` with prime denoting derivative with
+        approximated by :math:`\lvert {\\frac{1}{f'(x)}\rvert` and :math:`\lvert\\frac{1}{f'(y)}\rvert` with prime denoting derivative with
         respect to the variables :math:`x` and :math:`y`, respectively.
         '''
 
@@ -813,24 +815,29 @@ class NonMarkovEstimation(LangevinEstimation):
                         fast time scale estimate times the ``time_scale_separation_factor`` is printed. Second, the slow
                         time scale estimate and third, a check up whether the desired time scale separation is fulfilled
                         are printed.
+
         :type print_time_scale_info: bool
         :param MCMC_parallelization_method: Default is `None`. If `None` the basic serial MCMC computation is performed. If
                         `MCMC_parallelization_method = 'multiprocessing'`, a multiprocessing pool with `num_processes`
                         is used to accelerate MCMC sampling. If `MCMC_parallelization_method = 'chop_chain'` is used, the
                         total length of the desired Markov chain is divided into `'chop_chain'` parts each of which is
                         sampled in parallel and joined together in the end.
+
         :type MCMC_parallelization_method: str
         :param num_processes: Default is ``'half'``. If ``half``, almost half of the CPU kernels are used. If  ``'all'``, all CPU kernels
                         are used. If integer number, the defined number of CPU kernels is used for multiprocessing.
+
 		:type num_processes: str, int
 		:param num_chop_chains: Number by which the total length of the Markov chain is divided. Each slice is sampled in parallel and
 		                joined together in the end of the calculations.
+
 		:type num_chop_chains: int
 		:param MCMC_AC_estimate: If default `'standard'` is used, emcee's ``.get_autocorr_time()`` is applied to estimate the
 		                sampled Markov chain's autocorrelation length for thinning. In some cases the estimation procedure requires longer chains
 		                than you can run and does not converge at all. In such situations you can try to estimate the autocorrelation length with
 		                parametric models following the suggestions of the `emcee documentation <https://emcee.readthedocs.io/en/stable/tutorials/autocorr/>`_
 		                via ``MCMC_AC_estimate = 'alternative'``.
+
 		:type MCMC_AC_estimate: str
         '''
         self.data_window = np.roll(self.data, shift=- self.window_shift)[:self.window_size]
@@ -1025,6 +1032,7 @@ class NonMarkovEstimation(LangevinEstimation):
                             The implementation is same as in ``LangevinEstimation``. It might work to generate animations
                             with the option, but it is not tested. If errors occur, they are almost certainly bugs for that
                             reason.
+
         :type create_animation: Boolean
         :param ani_save_name: If `create_animation = True` the animation is saved in a .mp4 file with this name.
                         Default is `default_animation_name`.
@@ -1054,7 +1062,7 @@ class NonMarkovEstimation(LangevinEstimation):
         :param gauss_filter_truncate: According to the ``scipy.ndimage.filters.gaussian_filter`` option.
         :type gauss_filter_truncate: float
         :param plot_detrending: Default is ``False``. If ``True``, the ``self.data_window`` as well as the
-                            ``self.slow_trend`` and the detrended version are shown.
+                        ``self.slow_trend`` and the detrended version are shown.
         :type plot_detrending: bool
         :param print_time_scale_info: If `True`, control values are plotted during each prior evaluation. First, the
                         fast time scale estimate times the ``time_scale_separation_factor`` is printed. Second, the slow
@@ -1063,21 +1071,23 @@ class NonMarkovEstimation(LangevinEstimation):
         :type print_time_scale_info: bool
         :param MCMC_parallelization_method: Default is `None`. If `None` the basic serial MCMC computation is performed. If
                         `MCMC_parallelization_method = 'multiprocessing'`, a multiprocessing pool with `num_processes`
-                         is used to accelerate MCMC sampling. If `MCMC_parallelization_method = 'chop_chain'` is used, the
-                         total length of the desired Markov chain is divided into `'chop_chain'` parts each of which is
-                         sampled in parallel and joined together in the end.
+                        is used to accelerate MCMC sampling. If `MCMC_parallelization_method = 'chop_chain'` is used, the
+                        total length of the desired Markov chain is divided into `'chop_chain'` parts each of which is
+                        sampled in parallel and joined together in the end.
         :type MCMC_parallelization_method: str
         :param num_processes: Default is ``'half'``. If ``half``, almost half of the CPU kernels are used. If  ``'all'``, all CPU kernels
                          are used. If integer number, the defined number of CPU kernels is used for multiprocessing.
 		:type num_processes: str, int
 		:param num_chop_chains: Number by which the total length of the Markov chain is divided. Each slice is sampled in parallel and
-		                joined together in the end of the calculations.
+		                 joined together in the end of the calculations.
+
 		:type num_chop_chains: int
 		:param MCMC_AC_estimate: If default `'standard'` is used, emcee's ``.get_autocorr_time()`` is applied to estimate the
-		                sampled Markov chain's autocorrelation length for thinning. In some cases the estimation procedure requires longer chains
-		                than you can run and does not converge at all. In such situations you can try to estimate the autocorrelation length with
-		                parametric models following the suggestions of the `emcee documentation <https://emcee.readthedocs.io/en/stable/tutorials/autocorr/>`_
-		                via ``MCMC_AC_estimate = 'alternative'``.
+		                 sampled Markov chain's autocorrelation length for thinning. In some cases the estimation procedure requires longer chains
+		                 than you can run and does not converge at all. In such situations you can try to estimate the autocorrelation length with
+		                 parametric models following the suggestions of the `emcee documentation <https://emcee.readthedocs.io/en/stable/tutorials/autocorr/>`_
+		                 via ``MCMC_AC_estimate = 'alternative'``.
+
 		:type MCMC_AC_estimate: str
         '''
         self.window_size = window_size

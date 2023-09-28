@@ -885,19 +885,22 @@ class LangevinEstimation(RocketFastResilienceEstimation):
         :param gauss_filter_truncate: According to the ``scipy.ndimage.filters.gaussian_filter`` option.
         :type gauss_filter_truncate: float
         :param plot_detrending: Default is ``False``. If ``True``, the ``self.data_window`` as well as the
-                            ``self.slow_trend`` and the detrended version are shown.
+                        ``self.slow_trend`` and the detrended version are shown.
         :type plot_detrending: bool
         :param MCMC_parallelization_method: Default is `None`. If `None` the basic serial MCMC computation is performed. If
                         `MCMC_parallelization_method = 'multiprocessing'`, a multiprocessing pool with `num_processes`
                         is used to accelerate MCMC sampling. If `MCMC_parallelization_method = 'chop_chain'` is used, the
                         total length of the desired Markov chain is divided into `'chop_chain'` parts each of which is
                         sampled in parallel and joined together in the end.
+
         :type MCMC_parallelization_method: str
         :param num_processes: Default is ``'half'``. If ``half``, almost half of the CPU kernels are used. If  ``'all'``, all CPU kernels
                         are used. If integer number, the defined number of CPU kernels is used for multiprocessing.
+
 		:type num_processes: str, int
 		:param num_chop_chains: Number by which the total length of the Markov chain is divided. Each slice is sampled in parallel and
 		                joined together in the end of the calculations.
+
 		:type num_chop_chains: int
         '''
         cred_percentiles = np.array(cred_percentiles)
@@ -973,7 +976,7 @@ class LangevinEstimation(RocketFastResilienceEstimation):
         The start indices of the shifted windows are also saved in order to facilitate customized plots.
 
         :param window_size: Time window size.
-        :rytpe window_size: int
+        :type window_size: int
         :param window_shift: The rolling time window is shifted about `window_shift` data points.
         :type window_shift: int
         :param cred_percentiles: Two entries to define the percentiles of the calculated credibility bands
