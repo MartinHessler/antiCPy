@@ -893,10 +893,10 @@ class LangevinEstimation(RocketFastResilienceEstimation):
                         total length of the desired Markov chain is divided into `'chop_chain'` parts each of which is
                         sampled in parallel and joined together in the end.
         :type MCMC_parallelization_method: str
-        :param num_processes: Default is ``'half'``. If ``half``, almost half of the CPU kernels are used. If  ``'all'``,
+        :param num_processes: Default is ``'half'``. If ``'half'``, almost half of the CPU kernels are used. If ``'all'``,
                         all CPU kernels are used. If integer number, the defined number of CPU kernels is used for
                         multiprocessing.
-		:type num_processes: str or int
+		:type num_processes: int
 		:param num_chop_chains: Number by which the total length of the Markov chain is divided. Each slice is sampled
 		                in parallel and joined together in the end of the calculations.
 		:type num_chop_chains: int
