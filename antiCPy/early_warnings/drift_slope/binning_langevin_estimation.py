@@ -21,13 +21,14 @@ class BinningLangevinEstimation(LangevinEstimation):
 	:type _bin_labels: One-dimensional numpy array of int
 	:param _number_bin_members: Attribute that contains the number of data points of a time series that
 					belong to each bin.
+
 	:type _number_bin_members: One-dimensional numpy array of int
 	:param _bin_mean_increment: Attribute that contains the mean increments of each bin.
 	:type _bin_mean_increment: One-dimensional numpy array of float
 	:param _bin_mean_increment_squared: Attribute that contains the squared mean increments of each bin.
 	:type _bin_mean_increment_squared: One-dimensional numpy array of float
 	:param _bin_MAP: Attribute that contains the maximum a posteriori probability of each bin.
-	:type _bin_MAP:One-dimensional numpy array of float
+	:type _bin_MAP: One-dimensional numpy array of float
 	"""
 
 	def __init__(self, data, time, bin_num, drift_model = '3rd order polynomial',

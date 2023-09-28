@@ -14,6 +14,7 @@ from antiCPy.early_warnings.drift_slope.langevin_estimation import LangevinEstim
 class NonMarkovEstimation(LangevinEstimation):
     """
     Child class of ``LangevinEstimation``. Inherits its functions to guarantee similar function structure.
+
     :param data: A one dimensional numpy array containing the times series to analyse.
     :type data: One dimensional numpy array of floats
     :param time: A one dimensional numpy array containing the time samples of the time series data.
@@ -22,34 +23,42 @@ class NonMarkovEstimation(LangevinEstimation):
                         Additionally, a ``'first order polynomial'`` or a ``'3rd order odds correlated'`` can be chosen.
                         In ``'3rd order odds correlated'`` the first and third order coefficients are the same to reduce
                         complexity. Corresponds to ``drift_model`` in the ``LangevinEstimation`` case.
+
     :type X_drift_model: str
     :param X_coupling_term: Defines the X_coupling_term. Default is ``'constant'``. Additionally, a ``'first order polynomial'``
                         can be chosen.  Corresponds to ``diffusion_model`` in the ``LangevinEstimation`` case.
+
     :type X_coupling_term: str
     :param Y_model: Default is ``'Ornstein-Uhlenbeck noise'``. It defines automatically the Y drift model to be linear without offset
                         and the Y diffusion to be constant. The drift coefficient is given by :math:`-\frac{1}{\theta_5^2}`.
                         The diffusion coefficient is given by :math:`-\frac{1}{\theta_5}`.
+
     :type Y_model: str
     :param Y_drift_model: Other model settings than ``Y_model = 'Ornstein-Uhlenbeck noise'`` are not tested yet. In principle,
                         ``Y_drift_model`` can be chosen to be ``'first order polynomial'``, ``'3rd order polynomial'`` and
                         ``'3rd order odds correlated'``.
+
     :type Y_drift_model: str
     :param Y_diffusion_model:  Other model settings than ``Y_model = 'Ornstein-Uhlenbeck noise'`` are not tested yet. In principle,
                         ``'constant'`` and ``'first order polynomial'`` models can be chosen.
+
     :type Y_diffusion_model: str
     :param prior_type: Defines the used prior to calculate the posterior distribution of the data.
                         Default is ``'Non-informative linear and Gaussian Prior'``. A flat prior can be chosen
                         with ``'Flat Prior'``.
+
     :type prior_type: str
     :param prior_range: Customize the prior range of the estimated polynomial parameters :math:`\theta_i`
                         starting for :math:`\theta_0` in row with index 0 and upper limits in the first column.
                         Default is ``None`` which means prior ranges of -50 to 50 for the drift parameters and
                         0 to 50 for constant diffusion terms.
+
     :type prior_range: Two-dimensional numpy array of floats, optional
     :param scales: Two tailed percentiles to create credibility bands of the estimated measures.
     :type scales: One-dimensional numpy array with two float entries
     :param theta: Array that contains the estimated drift and diffusion parameters with drift and ending with diffusion.
                     The lowest order is mentioned first.
+
     :type theta: One-dimensional numpy array of floats
     :param ndim: Total number of parameters to estimate.
     :type ndim: int
@@ -66,10 +75,12 @@ class NonMarkovEstimation(LangevinEstimation):
     :param drift_slope: Array with the current drift slope estimate in the 0th component.
                         Component 1, 2 and 3, 4 contain the upper and lower bound of the credibility intervals
                         defined by the ``scales`` variable.
+
     :type drift_slope: One-dimensional numpy array of floats
     :param noise_level_estimate: Array with the noise level estimate in the 0th component.
                         Component 1, 2 and 3, 4 contain the upper and lower bound of the credibility intervals
                         defined by the ``scales`` variable.
+
     :type noise_level_estimate: One-dimenional numpy array of floats
     :param loop_range: Array with the start indices of the time array for each rolled time window.
     :type loop_range: One-dimensional (``data_size - window_size / window_shift + 1``) numpy array of integers
@@ -83,6 +94,7 @@ class NonMarkovEstimation(LangevinEstimation):
     :type increments: One-dimensional numpy array of floats
     :param joint_samples: Array that contains drawed parameter samples from their joint posterior probability
                          density function that is estimated from the data in the current ``data_window``.
+
     :type joint_samples: Two-dimensional (``ndim, num_of_joint_samples``) numpy array of floats
     :param slope_estimates: Estimates of the drift slope on the current ``data_window``.
     :type slope_estimates: One-dimensional numpy array of floats
@@ -96,25 +108,31 @@ class NonMarkovEstimation(LangevinEstimation):
                         of the rolling windows. The columns encode each rolling window with the drift
                         slope estimate :math:`\hat{\zeta}` in the 0th row and in rows 1,2 and 3,4
                         the upper and lower bound of the credibility intervals defined by ``scales``.
+
     :type slope_storage: Two-dimensional (``5, loop_range.size``) numpy array of floats
     :param noise_level_storage:  Array that contains the noise level estimates :math:`\hat{\sigma}`
                         of the rolling windows. The columns encode each rolling window with the noise level
                         estimate :math:`\hat{\sigma}` in the 0th row and in rows 1,2 and 3,4
                         the upper and lower bound of the credibility intervals defined by ``scales``.
+
     :type noise_level_storage: Two-dimensional (``5, loop_range.size``) numpy array of floats
     :param slope_kernel_density_obj: Kernel density object of ``scipy.gaussian_kde(...)`` of the slope
                         posterior created with a Gaussian kernel and a bandwidth computed by silverman's rule.
+
     :type slope_kernel_density_obj: ``scipy`` kernel density object of the ``scipy.gaussian_kde(...)`` function.
     :param noise_kernel_density_obj: Kernel density object of ``scipy.gaussian_kde(...)`` of the noise level
                         posterior created with a Gaussian kernel and a bandwidth computed by silverman's rule.
+
     :type noise_level_density_obj: ``scipy`` kernel density object of the ``scipy.gaussian_kde(...)`` function.
     :param slow_trend: Contains the subtracted slow trend if a detrending is applied to the whole data
                         or each window separately.
+
     :type slow_trend: One-dimensional numpy array of floats.
     :param detrending_of_whole_dataset: Default is ``None``. If ``'linear'`` the whole ``data`` is detrended linearly. If
                         ``Gaussian kernel smoothed`` a Gaussian smoothed curve is subtracted from the whole ``data``.
                         The parameters of the kernel smoothing can be set by ``gauss_filter_mode``, ``gauss_filter_sigma``,
                         ``gauss_filter_order``, ``gauss_filter_cval`` and ``gauss_filter_truncate``.
+
     :type detrending_of_whole_dataset: str
     :param gauss_filter_mode: According to the ``scipy.ndimage.filters.gaussian_filter`` option.
     :type gauss_filter_mode: str
@@ -128,14 +146,17 @@ class NonMarkovEstimation(LangevinEstimation):
     :type gauss_filter_truncate: float
     :param plot_detrending: Default is ``False``. If ``True``, the ``self.data`` as well as the
                         ``self.slow_trend`` and the detrended version are shown.
+
     :type plot_detrending: bool
     :param activate_time_scale_separation_prior: If ``True``, a time scale separation of the observed process :math:`X` and the
                         unobserved process :math:`Y` is assumed. Default is ``False``.
+
     :type activate_time_scale_separation_prior: bool
     :param slow_process: If ``activate_time_scale_separation_prior = True``, define the slow process via ``'X'`` or ``'Y'``, respectively.
     :type slow_process: str
     :param time_scale_separation_factor: If ``activate_time_scale_separation_prior = True``, define the factor by which you assume
                         the time scales of :math:`X` and :math:`Y` to differ.
+
     :type time_scale_separation_factor: int
     :param max_likelihood_starting_guesses: If ``None``, the MAP starting guesses (essentially maximum likelihood because of flat priors) are
                         are computed starting with all parameters set to one. In general, you can pass a one-dimensional numpy array with
@@ -786,7 +807,7 @@ class NonMarkovEstimation(LangevinEstimation):
         :param gauss_filter_truncate: According to the ``scipy.ndimage.filters.gaussian_filter`` option.
         :type gauss_filter_truncate: float
         :param plot_detrending: Default is ``False``. If ``True``, the ``self.data_window`` as well as the
-                            ``self.slow_trend`` and the detrended version are shown.
+                        ``self.slow_trend`` and the detrended version are shown.
         :type plot_detrending: bool
         :param print_time_scale_info: If `True`, control values are plotted during each prior evaluation. First, the
                         fast time scale estimate times the ``time_scale_separation_factor`` is printed. Second, the slow
@@ -795,12 +816,12 @@ class NonMarkovEstimation(LangevinEstimation):
         :type print_time_scale_info: bool
         :param MCMC_parallelization_method: Default is `None`. If `None` the basic serial MCMC computation is performed. If
                         `MCMC_parallelization_method = 'multiprocessing'`, a multiprocessing pool with `num_processes`
-                         is used to accelerate MCMC sampling. If `MCMC_parallelization_method = 'chop_chain'` is used, the
-                         total length of the desired Markov chain is divided into `'chop_chain'` parts each of which is
-                         sampled in parallel and joined together in the end.
+                        is used to accelerate MCMC sampling. If `MCMC_parallelization_method = 'chop_chain'` is used, the
+                        total length of the desired Markov chain is divided into `'chop_chain'` parts each of which is
+                        sampled in parallel and joined together in the end.
         :type MCMC_parallelization_method: str
         :param num_processes: Default is ``'half'``. If ``half``, almost half of the CPU kernels are used. If  ``'all'``, all CPU kernels
-                         are used. If integer number, the defined number of CPU kernels is used for multiprocessing.
+                        are used. If integer number, the defined number of CPU kernels is used for multiprocessing.
 		:type num_processes: str, int
 		:param num_chop_chains: Number by which the total length of the Markov chain is divided. Each slice is sampled in parallel and
 		                joined together in the end of the calculations.
