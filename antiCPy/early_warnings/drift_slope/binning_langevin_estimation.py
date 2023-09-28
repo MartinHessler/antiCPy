@@ -6,8 +6,8 @@ class BinningLangevinEstimation(LangevinEstimation):
 	"""
 	Child class of the ``LangevinEstimation`` class. Inherits all features and methods from the
 	parent class. The class is used to apply a computation shortcut of the implemented resilience
-	screening methods by a data binning approach. Needed attributes and (overloaded) methods are
-	provided.
+	screening methods by a data binning approach (cf. [David Kleinhans. Phys. Rev. E 85(2), pp. 026705 (2012)]).
+	Needed attributes and (overloaded) methods are provided.
 
 	:param _bin_centers: Attribute that contains the bin centers of the time series.
 	:type _bin_centers: One-dimensional numpy array of float
@@ -107,7 +107,7 @@ class BinningLangevinEstimation(LangevinEstimation):
 
 	def log_posterior(self,theta):
 		"""
-		Calculates the logarithmic posterior for a given tuple of parameters :math:`\\theta` .
+		Calculates the logarithmic posterior for a given tuple of parameters :math:`\underline{\\theta}` .
 		"""
 		self.theta = theta
 		self._bin_MAP = np.zeros(self._bin_num)
@@ -117,7 +117,7 @@ class BinningLangevinEstimation(LangevinEstimation):
 
 	def neg_log_posterior(self, theta):
 		"""
-		Calculates the negative logarithmic posterior for a given tuple of parameters :math:`\\theta` .
+		Calculates the negative logarithmic posterior for a given tuple of parameters :math:`\underline{\\theta}` .
 		"""
 		return (-1) * self.log_posterior(theta)
 

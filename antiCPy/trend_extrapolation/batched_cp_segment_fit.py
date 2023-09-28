@@ -14,7 +14,7 @@ class BatchedCPSegmentFit(CPSegmentFit):
 
     .. important::
         In any case make sure that you use
-        .. code-block::
+        .. code-block:: python
             import multiprocessing
             ...
             if __name__ == '__main__':

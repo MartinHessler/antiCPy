@@ -69,7 +69,7 @@ dimension of :math:`d =3` the number of false next neighbours tends to zero as s
 
 .. _quickfnn:
 
-.. image:: docs/early_warnings/dominant_eigenvalue/images/quickfnn.png
+.. figure:: images/quickfnn.png
     :alt: alternate text
     :align: center
     :figclass: align-center
@@ -93,7 +93,7 @@ in the following code and figure avg_DD_:
 
 .. _avg_DD:
 
-.. image:: docs/early_warnings/dominant_eigenvalue/images/avg_DD.png
+.. figure:: images/avg_DD.png
     :alt: alternate text
     :align: center
     :figclass: align-center
@@ -135,7 +135,7 @@ via a Gaussian filter and subtracted from the original non-stationary data.
 
 .. _DEV_ricker_type:
 
-.. image:: docs/early_warnings/dominant_eigenvalue/images/DEV_ricker_type.png
+.. figure:: images/DEV_ricker_type.png
     :alt: alternate text
     :align: center
     :figclass: align-center
@@ -145,7 +145,7 @@ via a Gaussian filter and subtracted from the original non-stationary data.
 
 .. _gauss_ricker_type:
 
-.. image:: docs/early_warnings/dominant_eigenvalue/images/gauss_ricker_type.png
+.. figure:: images/gauss_ricker_type.png
     :alt: alternate text
     :align: center
     :figclass: align-center
@@ -213,7 +213,7 @@ In the end the results could look similar to these in the figures DEV_excercise_
 
 .. _DEV_excercise:
 
-.. image:: docs/early_warnings/dominant_eigenvalue/images/AR_absDEV_ws1200_1000_1500_3models.png
+.. figure:: images/AR_absDEV_ws1200_1000_1500_3models.png
     :alt: alternate text
     :align: center
     :figclass: align-center
@@ -223,7 +223,7 @@ In the end the results could look similar to these in the figures DEV_excercise_
 
 .. _gauss_excercise:
 
-.. image:: docs/early_warnings/dominant_eigenvalue/images/AR_imaginary_plane_ws1200_1000_1500_3models.png
+.. figure:: images/AR_imaginary_plane_ws1200_1000_1500_3models.png
     :alt: alternate text
     :align: center
     :figclass: align-center

@@ -20,44 +20,44 @@ class NonMarkovEstimation(LangevinEstimation):
     :param time: A one dimensional numpy array containing the time samples of the time series data.
     :type time: One dimensional numpy array of floats
     :param X_drift_model: Defines the drift model. Default is ``'3rd order polynomial'``.
-                        Additionally, a ``'first order polynomial'`` or a ``'3rd order odds correlated'`` can be chosen.
-                        In ``'3rd order odds correlated'`` the first and third order coefficients are the same to reduce
-                        complexity. Corresponds to ``drift_model`` in the ``LangevinEstimation`` case.
+        Additionally, a ``'first order polynomial'`` or a ``'3rd order odds correlated'`` can be chosen.
+        In ``'3rd order odds correlated'`` the first and third order coefficients are the same to reduce
+        complexity. Corresponds to ``drift_model`` in the ``LangevinEstimation`` case.
 
     :type X_drift_model: str
     :param X_coupling_term: Defines the X_coupling_term. Default is ``'constant'``. Additionally, a ``'first order polynomial'``
-                        can be chosen.  Corresponds to ``diffusion_model`` in the ``LangevinEstimation`` case.
+        can be chosen.  Corresponds to ``diffusion_model`` in the ``LangevinEstimation`` case.
 
     :type X_coupling_term: str
     :param Y_model: Default is ``'Ornstein-Uhlenbeck noise'``. It defines automatically the Y drift model to be linear without offset
-                        and the Y diffusion to be constant. The drift coefficient is given by :math:`-\frac{1}{\theta_5^2}`.
-                        The diffusion coefficient is given by :math:`-\frac{1}{\theta_5}`.
+        and the Y diffusion to be constant. The drift coefficient is given by :math:`-\\frac{1}{\\theta_5^2}` .
+        The diffusion coefficient is given by :math:`-\\frac{1}{\\theta_5}` .
 
     :type Y_model: str
     :param Y_drift_model: Other model settings than ``Y_model = 'Ornstein-Uhlenbeck noise'`` are not tested yet. In principle,
-                        ``Y_drift_model`` can be chosen to be ``'first order polynomial'``, ``'3rd order polynomial'`` and
-                        ``'3rd order odds correlated'``.
+        ``Y_drift_model`` can be chosen to be ``'first order polynomial'``, ``'3rd order polynomial'`` and
+        ``'3rd order odds correlated'``.
 
     :type Y_drift_model: str
     :param Y_diffusion_model:  Other model settings than ``Y_model = 'Ornstein-Uhlenbeck noise'`` are not tested yet. In principle,
-                        ``'constant'`` and ``'first order polynomial'`` models can be chosen.
+        ``'constant'`` and ``'first order polynomial'`` models can be chosen.
 
     :type Y_diffusion_model: str
     :param prior_type: Defines the used prior to calculate the posterior distribution of the data.
-                        Default is ``'Non-informative linear and Gaussian Prior'``. A flat prior can be chosen
-                        with ``'Flat Prior'``.
+        Default is ``'Non-informative linear and Gaussian Prior'``. A flat prior can be chosen
+        with ``'Flat Prior'``.
 
     :type prior_type: str
-    :param prior_range: Customize the prior range of the estimated polynomial parameters :math:`\theta_i`
-                        starting for :math:`\theta_0` in row with index 0 and upper limits in the first column.
-                        Default is ``None`` which means prior ranges of -50 to 50 for the drift parameters and
-                        0 to 50 for constant diffusion terms.
+    :param prior_range: Customize the prior range of the estimated polynomial parameters :math:`\\theta_i`
+        starting for :math:`\\theta_0` in row with index 0 and upper limits in the first column.
+        Default is ``None`` which means prior ranges of -50 to 50 for the drift parameters and
+        0 to 50 for constant diffusion terms.
 
     :type prior_range: Two-dimensional numpy array of floats, optional
     :param scales: Two tailed percentiles to create credibility bands of the estimated measures.
     :type scales: One-dimensional numpy array with two float entries
     :param theta: Array that contains the estimated drift and diffusion parameters with drift and ending with diffusion.
-                    The lowest order is mentioned first.
+        The lowest order is mentioned first.
 
     :type theta: One-dimensional numpy array of floats
     :param ndim: Total number of parameters to estimate.
@@ -73,13 +73,13 @@ class NonMarkovEstimation(LangevinEstimation):
     :param dt: Time intervall of the equidistant time array.
     :type dt: float
     :param drift_slope: Array with the current drift slope estimate in the 0th component.
-                        Component 1, 2 and 3, 4 contain the upper and lower bound of the credibility intervals
-                        defined by the ``scales`` variable.
+        Component 1, 2 and 3, 4 contain the upper and lower bound of the credibility intervals
+        defined by the ``scales`` variable.
 
     :type drift_slope: One-dimensional numpy array of floats
     :param noise_level_estimate: Array with the noise level estimate in the 0th component.
-                        Component 1, 2 and 3, 4 contain the upper and lower bound of the credibility intervals
-                        defined by the ``scales`` variable.
+        Component 1, 2 and 3, 4 contain the upper and lower bound of the credibility intervals
+        defined by the ``scales`` variable.
 
     :type noise_level_estimate: One-dimenional numpy array of floats
     :param loop_range: Array with the start indices of the time array for each rolled time window.
@@ -93,7 +93,7 @@ class NonMarkovEstimation(LangevinEstimation):
     :param increments: Array that contains the increments from :math:`t` to :math:`t+1`.
     :type increments: One-dimensional numpy array of floats
     :param joint_samples: Array that contains drawed parameter samples from their joint posterior probability
-                         density function that is estimated from the data in the current ``data_window``.
+        density function that is estimated from the data in the current ``data_window``.
 
     :type joint_samples: Two-dimensional (``ndim, num_of_joint_samples``) numpy array of floats
     :param slope_estimates: Estimates of the drift slope on the current ``data_window``.
@@ -105,33 +105,33 @@ class NonMarkovEstimation(LangevinEstimation):
     :param theta_array: Array that contains the drift and diffusion parameters sampled with MCMC.
     :type theta_array: Two-dimensional numpy array of floats
     :param slope_storage: Array that contains the drift slope estimates :math:`\hat{\zeta}`
-                        of the rolling windows. The columns encode each rolling window with the drift
-                        slope estimate :math:`\hat{\zeta}` in the 0th row and in rows 1,2 and 3,4
-                        the upper and lower bound of the credibility intervals defined by ``scales``.
+        of the rolling windows. The columns encode each rolling window with the drift
+        slope estimate :math:`\hat{\zeta}` in the 0th row and in rows 1,2 and 3,4
+        the upper and lower bound of the credibility intervals defined by ``scales``.
 
     :type slope_storage: Two-dimensional (``5, loop_range.size``) numpy array of floats
     :param noise_level_storage:  Array that contains the noise level estimates :math:`\hat{\sigma}`
-                        of the rolling windows. The columns encode each rolling window with the noise level
-                        estimate :math:`\hat{\sigma}` in the 0th row and in rows 1,2 and 3,4
-                        the upper and lower bound of the credibility intervals defined by ``scales``.
+        of the rolling windows. The columns encode each rolling window with the noise level
+        estimate :math:`\hat{\sigma}` in the 0th row and in rows 1,2 and 3,4
+        the upper and lower bound of the credibility intervals defined by ``scales``.
 
     :type noise_level_storage: Two-dimensional (``5, loop_range.size``) numpy array of floats
     :param slope_kernel_density_obj: Kernel density object of ``scipy.gaussian_kde(...)`` of the slope
-                        posterior created with a Gaussian kernel and a bandwidth computed by silverman's rule.
+        posterior created with a Gaussian kernel and a bandwidth computed by silverman's rule.
 
     :type slope_kernel_density_obj: ``scipy`` kernel density object of the ``scipy.gaussian_kde(...)`` function.
     :param noise_kernel_density_obj: Kernel density object of ``scipy.gaussian_kde(...)`` of the noise level
-                        posterior created with a Gaussian kernel and a bandwidth computed by silverman's rule.
+        posterior created with a Gaussian kernel and a bandwidth computed by silverman's rule.
 
     :type noise_level_density_obj: ``scipy`` kernel density object of the ``scipy.gaussian_kde(...)`` function.
     :param slow_trend: Contains the subtracted slow trend if a detrending is applied to the whole data
-                        or each window separately.
+        or each window separately.
 
     :type slow_trend: One-dimensional numpy array of floats.
     :param detrending_of_whole_dataset: Default is ``None``. If ``'linear'`` the whole ``data`` is detrended linearly. If
-                        ``Gaussian kernel smoothed`` a Gaussian smoothed curve is subtracted from the whole ``data``.
-                        The parameters of the kernel smoothing can be set by ``gauss_filter_mode``, ``gauss_filter_sigma``,
-                        ``gauss_filter_order``, ``gauss_filter_cval`` and ``gauss_filter_truncate``.
+        ``Gaussian kernel smoothed`` a Gaussian smoothed curve is subtracted from the whole ``data``.
+        The parameters of the kernel smoothing can be set by ``gauss_filter_mode``, ``gauss_filter_sigma``,
+        ``gauss_filter_order``, ``gauss_filter_cval`` and ``gauss_filter_truncate``.
 
     :type detrending_of_whole_dataset: str
     :param gauss_filter_mode: According to the ``scipy.ndimage.filters.gaussian_filter`` option.
@@ -145,26 +145,26 @@ class NonMarkovEstimation(LangevinEstimation):
     :param gauss_filter_truncate: According to the ``scipy.ndimage.filters.gaussian_filter`` option.
     :type gauss_filter_truncate: float
     :param plot_detrending: Default is ``False``. If ``True``, the ``self.data`` as well as the
-                        ``self.slow_trend`` and the detrended version are shown.
+        ``self.slow_trend`` and the detrended version are shown.
 
     :type plot_detrending: bool
     :param activate_time_scale_separation_prior: If ``True``, a time scale separation of the observed process :math:`X` and the
-                        unobserved process :math:`Y` is assumed. Default is ``False``.
+        unobserved process :math:`Y` is assumed. Default is ``False``.
 
     :type activate_time_scale_separation_prior: bool
     :param slow_process: If ``activate_time_scale_separation_prior = True``, define the slow process via ``'X'`` or ``'Y'``, respectively.
     :type slow_process: str
     :param time_scale_separation_factor: If ``activate_time_scale_separation_prior = True``, define the factor by which you assume
-                        the time scales of :math:`X` and :math:`Y` to differ.
+        the time scales of :math:`X` and :math:`Y` to differ.
 
     :type time_scale_separation_factor: int
     :param max_likelihood_starting_guesses: If ``None``, the MAP starting guesses (essentially maximum likelihood because of flat priors) are
-                        are computed starting with all parameters set to one. In general, you can pass a one-dimensional numpy array with
-                        ``ndim`` entries to this argument to define different starting values.
+        are computed starting with all parameters set to one. In general, you can pass a one-dimensional numpy array with
+        ``ndim`` entries to this argument to define different starting values.
+        .. note::
+            This is especially necessary, if you enable the time scale separation, since the default array of ones will
+            contradict normally to the assumed two time scale model.
 
-                        .. note::
-                            This is especially necessary, if you enable the time scale separation, since the default array of ones will
-                            contradict normally to the assumed two time scale model.
     :type max_likelihood_starting_guesses: One-dimensional numpy array of floats.
 
     """
@@ -347,7 +347,7 @@ class NonMarkovEstimation(LangevinEstimation):
         is given by the `scales` variable.
         If two separate time scales are assumed via ``activate_time_scale_separation_prior=True``, the ``slow_process``
         and the ``time_scale_separation_factor`` can be specified. The time scales for each sampled parameter set are
-        approximated by :math:`\abs{\frac{1}{f'(x)}}` and :math:`\abs{\frac{1}{f'(y)}}` with prime denoting derivative with
+        approximated by :math:`\\abs{\\frac{1}{f'(x)}}` and :math:`\\abs{\\frac{1}{f'(y)}}` with prime denoting derivative with
         respect to the variables :math:`x` and :math:`y`, respectively.
         '''
 
@@ -580,7 +580,7 @@ class NonMarkovEstimation(LangevinEstimation):
         Compute the `theta_array` with :math:`nwalkers \cdot nsteps` Markov Chain Monte Carlo (MCMC) samples.
         If `ignore_AC_error = False` the calculation will terminate with error if
         the autocorrelation of the sampled chains is too high compared to the chain length.
-        Otherwise the highest autocorrelation length will be used to thin the sampled chains.
+        Otherwise, the highest autocorrelation length will be used to thin the sampled chains.
         In order to run tests in shorter time you can set "ignore_AC_error = True" and
         define a `thinning_by` n steps. If `print_AC_tau = True` the autocorrelation lengths of the
         sampled chains is printed.
@@ -1221,7 +1221,7 @@ class NonMarkovEstimation(LangevinEstimation):
                                     mark_noise_level=None, print_time_scale_info = False):
         """
         Performs an automated MAP window scan with defined `window_shift` over the whole time series. This might be
-        the first approach for a non-Markovian estimation, since the MCMC computations are time consuming. In each
+        the first approach for a non-Markovian estimation, since the MCMC computations are time-consuming. In each
         window the drift slope, noise level, X coupling strength and OU parameter estimates with corresponding
         credibility bands are computed and saved in the `slope_storage` and the `noise_level_storage`.
 
