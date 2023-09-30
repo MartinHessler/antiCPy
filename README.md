@@ -1,4 +1,4 @@
-[![DOI](https://zenodo.org/badge/440811484.svg)](https://zenodo.org/badge/latestdoi/440811484) [![Documentation Status](https://readthedocs.org/projects/anticpy/badge/?version=latest)](https://anticpy.readthedocs.io/en/latest/?badge=latest) [![PyPI version](https://badge.fury.io/py/antiCPy.svg)](https://badge.fury.io/py/antiCPy)
+[![DOI](https://zenodo.org/badge/440811484.svg)](https://zenodo.org/badge/latestdoi/440811484) [![Documentation Status](https://readthedocs.org/projects/anticpy/badge/?version=latest)](https://anticpy.readthedocs.io/en/latest/?badge=latest) [![PyPI version](https://badge.fury.io/py/antiCPy.svg)](https://badge.fury.io/py/antiCPy) [![GitHub release](https://img.shields.io/github/release/MartinHessler/antiCPy?color)](https://github.com/MartinHessler/antiCPy) [![license](https://img.shields.io/github/license/MartinHessler/antiCPy?color=blue)](https://img.shields.io/github/MartinHessler/antiCPy/blob/main/LICENSE)
 
 antiCPy
 =======
