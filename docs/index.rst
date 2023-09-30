@@ -28,6 +28,7 @@ You can find the `package on github <https://github.com/MartinHessler/antiCPy>`_
 
 Citing `antiCPy`
 ===============
+
 If you use antiCPy's `drift_slope` measure, please cite
 
 Martin Heßler et al. Bayesian on-line anticipation of critical transitions. New J. Phys. (2022). https://doi.org/10.1088/1367-2630/ac46d4.
@@ -52,7 +53,18 @@ The package can be installed via ::
    early_warnings/early_warnings
    trend_extrapolation/trend_extrapolation   
 
+Related publications
+====================
+Up to now the package is accompanied by
 
+-  the publication `Efficient Multi-Change Point Analysis to Decode Economic Crisis Information from the S&P500 Mean Market Correlation <https://www.mdpi.com/1099-4300/25/9/1265>`_ ,
+-  the publication `Memory Effects, Multiple Time Scales and Local Stability in Langevin Models of the S&P500 Market Correlation <https://www.mdpi.com/1099-4300/25/9/1257>`_ ,
+-  the publication `Identifying dominant industrial sectors in market states of the S&P 500 financial data <https://iopscience.iop.org/article/10.1088/1742-5468/accce0>`_ ,
+-  the publication `Quantifying resilience and the risk of regime shifts under strong correlated noise <https://academic.oup.com/pnasnexus/article/2/2/pgac296/6960580>`_ ,
+-  the publication `Bayesian on-line anticipation of critical transitions <https://iopscience.iop.org/article/10.1088/1367-2630/ac46d4>`_ ,
+
+- the preprint `Anticipation of Oligocene's climate heartbeat by simplified eigenvalue estimation <https://arxiv.org/abs/2309.14179>`_ ,
+- the preprint `Estimating tipping risk factors in complex systems with application to power outage data <https://arxiv.org/abs/2212.06780>`_ .
 
 Indices and tables
 ==================
