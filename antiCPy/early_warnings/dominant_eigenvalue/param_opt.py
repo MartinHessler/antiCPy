@@ -96,49 +96,42 @@ def false_NN(data, index_shift=1, start_order = 1, end_order = 15, NN_threshold 
 	:note: The NN_threshold interval is chosen following the guide line in [KBA92]_ .
 	
 	"""
-	sigma_deviation = np.std(data) # calculate standard deviation of the investigated time series
-	false_NN = np.zeros(end_order + 1 - start_order) # allocate space for the false next neighbor results
 
-	for m in range(start_order,end_order + 1): # iteration over the chosen interval of embedding dimensions 
+	def false_NN(data, time, index_shift, start_order=1, end_order=15, NN_threshold=30):
 
-		### state space reconstrution for the embedding dimension m and m + 1 ###
-		state_space_m = embedding_attractor_reconstruction(data, m, index_shift)
-		state_space_m_plus_1 = embedding_attractor_reconstruction(data, m+1, index_shift)
-
-		### preparation of the state spaces for next neighbour calculations through with np.transpose ###
-		state_space_m_T=np.transpose(state_space_m)
-		state_space_m_plus_1_T=np.transpose(state_space_m_plus_1)
-		nbrs_model_m = NearestNeighbors(n_neighbors=2, algorithm='ball_tree').fit(state_space_m_T)
-
-		### calculation of the next neighbours in the dimensions m and m + 1 ###
-		euclidean_dists_m, NN_indices_m=nbrs_model_m.kneighbors(state_space_m_T)
-		euclidean_dists_m_plus_1_of_NN_m = np.zeros(state_space_m_T[:,0].size - m)
-
-		### definition of the heaviside arguement ###
-		heaviside_arg_false_NN = np.zeros(euclidean_dists_m_plus_1_of_NN_m.size)
-
-		### calculation of euclidean distances of the state space neighbors in dimension m in the state space of m + 1 dimensions ###
-		for i in range(euclidean_dists_m_plus_1_of_NN_m.size):
-			euclidean_dists_m_plus_1_of_NN_m[i] = euclidean(state_space_m_plus_1_T[NN_indices_m[i, 1] - 1,:], state_space_m_plus_1_T[i,:]) # The index shift NN_indices_m[i, 1] - 1 results from the higher embedding in m + 1. The index of state_space_m_plus_1_T[i,:] is valid for the calculation of all distances.
-		
-		### definition of the heaviside arguement values with error catch of division by zero ###
-		for i in range(heaviside_arg_false_NN.size):
-			if euclidean_dists_m[m+(i-1),1] != 0 :
-				heaviside_arg_false_NN[i] = (euclidean_dists_m_plus_1_of_NN_m[i] / euclidean_dists_m[m+(i-1),1]) - NN_threshold # Index shift for the same reasons as above.
-			elif euclidean_dists_m_plus_1_of_NN_m[i] != 0 :
-				heaviside_arg_false_NN[i] = NN_threshold + 1 
+		sigma_deviation = np.std(data)
+		false_NN = np.zeros(end_order + 1 - start_order)
+		j = 0
+		for m in range(start_order, end_order + 1):
+			state_space_m = embedding_attractor_reconstruction(data, time, m, index_shift)
+			state_space_m_plus_1 = embedding_attractor_reconstruction(data, time, m + 1, index_shift)
+			state_space_m_T = np.transpose(state_space_m)
+			state_space_m_plus_1_T = np.transpose(state_space_m_plus_1)
+			nbrs_model_m = NearestNeighbors(n_neighbors=2, algorithm='ball_tree').fit(state_space_m_T)
+			euclidean_dists_m, NN_indices_m = nbrs_model_m.kneighbors(state_space_m_T)
+			euclidean_dists_m_plus_1_of_NN_m = np.zeros(state_space_m_T[:, 0].size - index_shift)
+			heaviside_arg_false_NN = np.zeros(euclidean_dists_m_plus_1_of_NN_m.size)
+			for i in range(euclidean_dists_m_plus_1_of_NN_m.size):
+				euclidean_dists_m_plus_1_of_NN_m[i] = euclidean(
+					state_space_m_plus_1_T[NN_indices_m[i + index_shift, 1] - index_shift, :], state_space_m_plus_1_T[i,
+																							   :])  # Durch die Erhöhung der Einbettung verschiebt sich der usprüngliche Index der Dimension m um -1. Ansonsten soll für alle i Zustände der false_NN durchgeführt werden.
+			for i in range(heaviside_arg_false_NN.size):
+				if euclidean_dists_m[i + index_shift, 1] != 0:
+					heaviside_arg_false_NN[i] = (euclidean_dists_m_plus_1_of_NN_m[i] / euclidean_dists_m[
+						(i + index_shift), 1]) - NN_threshold
+				elif euclidean_dists_m_plus_1_of_NN_m[i] != 0:
+					heaviside_arg_false_NN[i] = 1
+				else:
+					heaviside_arg_false_NN[i] = 1  # Following Kantz, Schreiber
+			heaviside_arg_filter = (sigma_deviation / NN_threshold) - euclidean_dists_m[index_shift:, 1]
+			if np.sum(np.heaviside(heaviside_arg_filter, 0)) != 0:
+				false_NN[j] = np.sum(
+					np.heaviside(heaviside_arg_false_NN, 0) * np.heaviside(heaviside_arg_filter, 0)) / (
+								  np.sum(np.heaviside(heaviside_arg_filter, 0)))
 			else:
-				heaviside_arg_false_NN[i] = NN_threshold - 1
-
-		### calculation of the heaviside filter function ###
-		heaviside_arg_filter = (sigma_deviation/NN_threshold) - euclidean_dists_m[m:,1] # Index shift for the same reasons as above.
-
-		### calculation of the number of false next neighbors in each embedding space of dimension m with evaluation of the heaviside filter function ###
-		if  np.sum(np.heaviside(heaviside_arg_filter, 0)) != 0:
-			false_NN[m-1] = np.sum(np.heaviside(heaviside_arg_false_NN, 0) * np.heaviside(heaviside_arg_filter,0))/(np.sum(np.heaviside(heaviside_arg_filter, 0)))
-		else:
-			false_NN[m-1] = 0
-	return false_NN
+				false_NN[j] = 0
+			j += 1
+		return false_NN
 
 
 
