@@ -6,3 +6,4 @@ ipyparallel
 celerite
 statsmodels
 scikit-learn
+sphinx
