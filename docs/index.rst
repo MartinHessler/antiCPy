@@ -46,13 +46,6 @@ The package can be installed via ::
    pip install antiCPy
 
 
-.. toctree::
-   :maxdepth: 3
-   :caption: Contents:
-   
-   early_warnings/early_warnings
-   trend_extrapolation/trend_extrapolation   
-
 Related publications
 ====================
 Up to now the package is accompanied by
@@ -65,6 +58,13 @@ Up to now the package is accompanied by
 
 - the preprint `Anticipation of Oligocene's climate heartbeat by simplified eigenvalue estimation <https://arxiv.org/abs/2309.14179>`_ ,
 - the preprint `Estimating tipping risk factors in complex systems with application to power outage data <https://arxiv.org/abs/2212.06780>`_ .
+
+.. toctree::
+   :maxdepth: 5
+   :caption: Contents:
+   
+   early_warnings/early_warnings
+   trend_extrapolation/trend_extrapolation   
 
 Indices and tables
 ==================
