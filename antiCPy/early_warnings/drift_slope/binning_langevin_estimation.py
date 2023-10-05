@@ -9,6 +9,9 @@ class BinningLangevinEstimation(LangevinEstimation):
 	screening methods by a data binning approach (cf. [Kleinhans2012]_ ).
 	Needed attributes and (overloaded) methods are provided.
 
+	.. hint::
+		The fitting procedure is faster than the MAP estimation if the windows contain a certain amount of data.
+
 	:param _bin_centers: Attribute that contains the bin centers of the time series.
 	:type _bin_centers: One-dimensional numpy array of float
 	:param _bin_num: Number of chosen bins for the time series binning procedure.
@@ -89,7 +92,7 @@ class BinningLangevinEstimation(LangevinEstimation):
 		Calculates the negative logarithmic likelihood function of a bin in the binning data approach.
 		"""
 		#Log-likelihood-function for bin-wise estimation based on statistical pars
-		var = 2. * pars[1]**2 * dt
+		var = pars[1]**2 * dt
 		ML_theta = num_bin_members / 2. * (np.log(2 * np.pi * var)
 			+ (bin_incr_mean_squared - 2. * pars [0] * dt * bin_incr_mean
 			+ (pars[0])**2 * dt**2) / var)
@@ -182,7 +185,10 @@ class BinningLangevinEstimation(LangevinEstimation):
 				zero_members = True
 			if printbool:
 				print('bin_indizes size: ', bin_indizes.size)
-			incr = data_window[bin_indizes + 1] - data_window[bin_indizes]
+			print(data_window.size - 1)
+			if np.any(bin_indizes == data_window.size - 1):
+				bin_indizes = np.delete(bin_indizes, bin_indizes == data_window.size -1)
+			incr = data_window[bin_indizes+1] - data_window[bin_indizes]
 			if printbool:
 				print('Increments:', incr)
 			bin_incr_mean[j - 1] = np.sum(incr) / num_bin_members[j - 1]

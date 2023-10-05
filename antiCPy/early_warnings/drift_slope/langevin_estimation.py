@@ -9,7 +9,9 @@ import emcee
 import multiprocessing as mp
 import ipyparallel as ipp
 import math as mh
+
 from antiCPy.early_warnings.drift_slope.rocket_fast_resilience_estimation import RocketFastResilienceEstimation
+from .summary_statistics_helper import _summary_statistics_helper
 
 class LangevinEstimation(RocketFastResilienceEstimation):
     '''
@@ -252,8 +254,8 @@ class LangevinEstimation(RocketFastResilienceEstimation):
         '''
 
         self.fixed_point_estimate = np.mean(self.data_window)
-        self.drift_slope[0] = self.MAP_theta[1, 0] + 2 * self.MAP_theta[2, 0] * self.fixed_point_estimate + 3 * \
-                              self.MAP_theta[3, 0] * self.fixed_point_estimate ** 2
+        self.drift_slope[0] = (self.MAP_theta[1, 0] + 2 * self.MAP_theta[2, 0] * self.fixed_point_estimate
+                               + 3 * self.MAP_theta[3, 0] * self.fixed_point_estimate ** 2)
 
 
     @staticmethod
@@ -960,13 +962,14 @@ class LangevinEstimation(RocketFastResilienceEstimation):
             np.save(noise_level_save_name + '.npy', self.noise_level_storage)
 
     def perform_MAP_resilience_scan(self, window_size, window_shift,
-                                    cred_percentiles=np.array([16, 1]), symmetric_error=False,
+                                    cred_percentiles=np.array([16, 1]), error_propagation='summary statistics',
+                                    summary_window_size = 10, sigma_multiples = np.array([1,3]),
                                     print_progress=True, print_details=False,
                                     slope_save_name='default_save_slopes',
                                     noise_level_save_name='default_save_noise', save=True,
                                     create_plot=False, ani_save_name='default_animation_name',
                                     animation_title='', mark_critical_point=None,
-                                    mark_noise_level=None):
+                                    mark_noise_level=None, print_hint = True, fastMAPflag = False):
         """
         Performs an automated MAP window scan with defined `window_shift` over the whole time series. In each
         window the drift slope and noise level estimates with corresponding credibility bands are computed
@@ -979,17 +982,39 @@ class LangevinEstimation(RocketFastResilienceEstimation):
         :type window_size: int
         :param window_shift: The rolling time window is shifted about `window_shift` data points.
         :type window_shift: int
-        :param cred_percentiles: Two entries to define the percentiles of the calculated credibility bands
+        :param cred_percentiles: One or two entries to define the percentiles of the calculated credibility bands
                         of the estimated parameters. It is stored in the attribute `credibility_bands`.
                         Default is `numpy.array([16,1])`.
 
         :type cred_percentiles: One-dimensional numpy array of integers.
-        :param symmetric_error: If ``True``, the highest uncertainty of each estimated ``MAP_theta`` is used
-                        to define symmetric confidence bands that are used for the Gaussian error progagation
-                        results for the drift slope that are stored in ``MAP_slope_margin``. If ``False``,
-                        the asymmetric confidence bands of the ``MAP_theta`` are used.
+        :param error_propagation: Defines the method that is used to compute the confidence bands. Default is
+                        ``'summary statistics``. In that case drift slope samples of size ``summary_window_size`` are
+                        used to compute the drift slope mean and its standard error. The parameter ``sigma_multiples``
+                        defines the width of the summary statistics' symmetric error bands.
+                        If ``'error bound'`` or ``'uncorrelated Gaussian'`` is chosen, the marginal uncertainties
+                        corresponding to ``cred_percentiles`` are computed employing Wilks' theorem. With ``'error bound'``
+                        the highest uncertainties per parameter and ``cred_percentiles`` level is interpreted as a symmetric
+                        worst case bound of the error. If  ``'uncorrelated Gaussian'`` is chosen, the uncertainties are
+                        treated corresponding to the slight asymmetric results of the Wilks' theorem confidence intervals.
+                        Both options give trustworthy results in the case of a first order polynomial drift. In case of the
+                        third order polynomial drift they are too optimistic, i.e. narrow, since the error bounds
+                        (``'error bound'``) or errors (``'uncorrelated Gaussian'``) are propagated without regard of
+                        correlations in the model parameters. Furthermore, the ``'uncorrelated Gaussian'`` option keeps
+                        the slightly asymmetric errors proposed by Wilks' theorem for the marginal parameter distributions.
+                        This small formal incorrectness is to maintain information about asymmetry in the estimates in a
+                        first guess. The ``cred_percentiles`` are fixed to ``cred_percentiles = numpy.array([5,1])`` to
+                        transform the half confidence bands under the assumption of Gaussian distributions by the factors
+                        1.96 and 2.5525, respectively. The propagated result is transformed back.
 
-        :type symmetric_error: Boolean
+                        .. hint::
+                            The options ``'error bound'`` and ``'uncorrelated Gaussian'`` are only trustworthy for a linear
+                            drift term. They might also be correct for a third order polynomial drift in the case ofvery
+                            high amounts of data per window. Otherwise, the default ``'summary statistics'`` should be used,
+                            unless the window shift is very high. In that case it might introduce a too strong delay due
+                            to the averaging procedure.
+
+        :type error_propagation: str
+
         :param print_progress: If `True` the progress of the MAP estimation per window is shown.
                         Default is `False`.
 
@@ -1013,7 +1038,27 @@ class LangevinEstimation(RocketFastResilienceEstimation):
         :param create_plot: If ``True``, the MAP resilience scan results are plotted. Default is ``False``.
                         NOTE: Not implemented yet.
         :type create_plot: Boolean
+        :param summary_window_size: If ``error_propagation = 'summary statistics'`` is chosen, the parameter defines
+                        the number of drift slope estimates to use in a window summary statistic. The windows are shifted
+                        by one.
+        :type summary_window_size: int
+        :param sigma_multiples: The array hast two entries. If ``error_propagation = 'summary statistics'`` is chosen,
+                        the entries define the drift slope standard error multiples which are used to calculate the
+                        uncertainty bands.
+        :type sigma_multiples: One dimensional numpy array of float .
         """
+
+        if error_propagation == 'uncorrelated Gaussian' and self.drift_model == '3rd order polynomial':
+            credibility_bands = np.array([5,1])
+            if print_hint:
+                print('HINT: Fixed cred_percentiles = numpy.array[5,1]) for the uncorrelated Gaussian error propagation '
+                      'of the drift slope is used for drift_model == `3rd_order_polynomial`.')
+        elif error_propagation == 'uncorrelated Gaussian' and self.drift_model == 'first order polynomial':
+            credibility_bands = cred_percentiles
+        elif error_propagation == 'error bound':
+            credibility_bands = cred_percentiles
+        elif not error_propagation == 'summary statistics':
+            print('ERROR: No suitable error_propagation option defined.')
         self.window_size = window_size
         self.window_shift = window_shift
         self.data_window = np.zeros(window_size)
@@ -1026,11 +1071,14 @@ class LangevinEstimation(RocketFastResilienceEstimation):
                 if print_progress:
                     print('Calculate MAP resilience for window ' + str(i + 1) + ' of ' + str(self.loop_range.size) + '.')
                 self.window_shift = self.loop_range[i]
-                self._calc_MAP_resilience(cred_percentiles, symmetric_error, print_details)
+                self._calc_MAP_resilience(cred_percentiles, error_propagation, summary_window_size,
+                                          sigma_multiples, print_details)
                 self.slope_storage[:, i] = self.drift_slope
                 self.noise_level_storage[:, i] = self.noise_level_estimate
         elif create_plot:
             print('The MAP plot feature is not implemented yet.')
+        if error_propagation == 'summary statistics' and not fastMAPflag:
+            self.slope_storage = _summary_statistics_helper(self.slope_storage, summary_window_size, sigma_multiples)
         if save:
             np.save(slope_save_name, self.slope_storage)
             np.save(noise_level_save_name, self.noise_level_storage)
@@ -1045,32 +1093,16 @@ class LangevinEstimation(RocketFastResilienceEstimation):
         self.increments = self.data_window[1:] - self.data_window[:-1]
 
 
-    def _calc_MAP_resilience(self, cred_percentiles, symmetric_error, print_details):
+    def _calc_MAP_resilience(self, cred_percentiles, error_propagation, summary_window_size,
+                            sigma_multiples, print_details):
         """
         Helper function that computes the MAP estimates of drift slope :math:`\hat{\zeta}` and noise level
         :math:`\hat{\sigma}` with corresponding confidence bands created with Wilks' theorem and
         Gaussian propagation of unertainty for a given ``window_size`` and ``window_shift`` stored
         in the corresponding attributes.
-
-        :param cred_percentiles: Two entries to define the percentiles of the calculated credibility bands
-                        of the estimated parameters. It is stored in the attribute `credibility_bands`.
-                        Default is `numpy.array([16,1])`.
-
-        :type cred_percentiles: One-dimensional numpy array of integers.
-        :param symmetric_error: If ``True``, the highest uncertainty of each estimated ``MAP_theta`` is used
-                        to define symmetric confidence bands that are used for the Gaussian error progagation
-                        results for the drift slope that are stored in ``MAP_slope_margin``. If ``False``,
-                        the asymmetric confidence bands of the ``MAP_theta`` are used.
-
-        :type symmetric_error: Boolean
-        :param print_details: If `True` a more detailed print output in the case the binning procedure is
-                        provided. Default is `False`.
-
-        :type print_details: Boolean
         """
         self.data_window = np.roll(self.data, shift=- self.window_shift)[:self.window_size]
         self.time_window = np.roll(self.time, shift=- self.window_shift)[:self.window_size]
-        self.credibility_bands = cred_percentiles
         self._prepare_data(printbool=print_details)
         self._compute_MAP_estimates(printbool=print_details)
         if print_details:
@@ -1086,9 +1118,9 @@ class LangevinEstimation(RocketFastResilienceEstimation):
             print('Done!')
             print('_____')
         self._determine_confidence_bands(sigRatio=cred_percentiles, printbool=print_details)
-        if symmetric_error:
+        if error_propagation == 'error bound':
             self._compute_slope_error_margin(printbool=print_details)
-        else:
+        elif error_propagation == 'uncorrelated Gaussian':
             self._compute_slope_errors(printbool=print_details)
 
 
@@ -1104,7 +1136,6 @@ class LangevinEstimation(RocketFastResilienceEstimation):
             print('Perform MAP estimation!')
             print('______________________')
         par0 = np.ones(self.ndim)
-        # par0 = np.array([4,2,-3,-3,0])
         self.MAP_theta = np.zeros((self.ndim, 5))
         if self.antiCPyObject == 'LangevinEstimation':
             self.init_parallel_EnsembleSampler(self.data_window, self.dt, self.drift_model, self.diffusion_model,
@@ -1119,8 +1150,6 @@ class LangevinEstimation(RocketFastResilienceEstimation):
                                 options={'maxiter': 10 ** 5, 'disp': False},
                                 method='Nelder-Mead')
         self.MAP_theta[:, 0] = res['x']
-        # ML_theta = optimize.fmin( parBinNegLogLikelihood , par0 ,
-        # args = (bin_incr_mean , bin_incr_mean_squared , num_bin_members, bin_centers , D1 , D2 , dt), disp = True )
         if printbool:
             print('MAP theta: ', self.MAP_theta)
             print('______________________')
@@ -1146,7 +1175,8 @@ class LangevinEstimation(RocketFastResilienceEstimation):
         dev[theta_index] = map_bpci_bisection
         return (self._optimum_solution
                 - self.neg_log_posterior(self.MAP_theta[:, 0] + dev)
-                - (self._sigmaRatio))
+                - (np.log(self._sigmaRatio)))
+
 
     def _calc_confidence_band(self, printbool):
         """
@@ -1163,33 +1193,23 @@ class LangevinEstimation(RocketFastResilienceEstimation):
             print('_______________________________________________________')
         self._optimum_solution = self.neg_log_posterior(self.MAP_theta[:, 0])
         MAP_CI = np.zeros((self.ndim, 2))
-        # Calculate width of confidence intervals
-        # if self._sigmaRatio.size == 1:
-        # 	confidence_indizes = 1
-        # elif self._sigmaRatio.size == 2:
-        # 	confidence_indizes = [0,2]
-        # for j in confidence_indizes:
         for i in range(self.ndim):
             if printbool:
                 print('Parameter ' + str(i + 1) + ' : ' + str(self.MAP_theta[i, 0]) + ' BPCI : ( ')
             # find lower bound for bisection root finding algorithm
-            # self.MAP_CI[i,0] = -1.
             map_bpci_bisection = -1
             while self._confidence_helper(map_bpci_bisection, i) >= 0:
                 map_bpci_bisection -= 1.
-            # self.MAP_CI[i,0] = self.MAP_CI[i,0] - 1.
             # b i s e c t i o n
             MAP_CI[i, 0] = optimize.bisect(f=self._confidence_helper, a=map_bpci_bisection, b=0.,
-                                           args=(i), xtol=1e-16)
+                                           args=(i), xtol=1e-3)
             # find upper bound for bisection root finding algorithm
-            # self.MAP_CI[i,1] = 1.
             map_bpci_bisection = 1
             while self._confidence_helper(map_bpci_bisection, i) > 0:
                 map_bpci_bisection += 1.
-            # self.MAP_CI[i,1]= self.MAP_CI[i,1] + 1.
             # b i s e c t i o n
             MAP_CI[i, 1] = optimize.bisect(f=self._confidence_helper, a=0., b=map_bpci_bisection,
-                                           args=(i), xtol=1e-16)
+                                           args=(i), xtol=1e-3)
             if printbool:
                 print(str(MAP_CI[i, 0]) + ', ' + str(MAP_CI[i, 1]) + ')')
         if printbool:
@@ -1214,24 +1234,17 @@ class LangevinEstimation(RocketFastResilienceEstimation):
         """
         if sigRatio.size == 2:
             self.MAP_CI = np.zeros((self.ndim, 4))
-            # self._sigmaRatio = sigRatio[0] / 100.
-            self._sigmaRatio = -cpy.chi2.ppf(1-sigRatio[0]/100.,1)/2.
+            self._sigmaRatio = np.exp(-cpy.chi2.ppf(1-sigRatio[0]/100.,1)/2.)
             self.MAP_CI[:, 0:2] = self._calc_confidence_band(printbool=printbool)
-            # print(self.MAP_CI)
             self.MAP_theta[:, 1] = self.MAP_theta[:, 0] + self.MAP_CI[:, 0]
             self.MAP_theta[:, 2] = self.MAP_theta[:, 0] + self.MAP_CI[:, 1]
-            # self._sigmaRatio = sigRatio[1] / 100.
-            self._sigmaRatio = -cpy.chi2.ppf(1-sigRatio[1]/100.,1)/2.
-            # print('sigRatio2: ', self._sigmaRatio)
+            self._sigmaRatio = np.exp(-cpy.chi2.ppf(1-sigRatio[1]/100.,1)/2.)
             self.MAP_CI[:, 2:4] = self._calc_confidence_band(printbool=printbool)
             self.MAP_theta[:, 3] = self.MAP_theta[:, 0] + self.MAP_CI[:, 2]
             self.MAP_theta[:, 4] = self.MAP_theta[:, 0] + self.MAP_CI[:, 3]
-            # print(self.MAP_CI)
-            # self._sigmaRatio = sigRatio
         elif sigRatio.size == 1:
             self.MAP_CI = np.zeros((self.ndim, 2))
-            # self._sigmaRatio = sigRatio[0] / 100.
-            self._sigmaRatio = -cpy.chi2.ppf(1-sigRatio[0]/100., 1)/2.
+            self._sigmaRatio = np.exp(-cpy.chi2.ppf(1-sigRatio[0]/100., 1)/2.)
             self.MAP_CI[:, 0:2] = self._calc_confidence_band(printbool=printbool)
             self.MAP_theta[:, 1] = self.MAP_theta[:, 0] + self.MAP_CI[:, 0]
             self.MAP_theta[:, 2] = self.MAP_theta[:, 0] + self.MAP_CI[:, 1]
@@ -1241,9 +1254,19 @@ class LangevinEstimation(RocketFastResilienceEstimation):
 
     def _compute_slope_errors(self, printbool):
         """
-        Helper function that determines the asymmetric uncertainty bands of the MAP slope estimates via
-        Gaussian propagation of uncertainties. The underlying marginal uncertainties of the ``MAP_theta``
-        are estimated via Wilks' theorem.
+        Helper function that determines the asymmetric marginal uncertainties of the ``MAP_theta`` via Wilks' theorem.
+        The method yields trustable confidence bands for the drift slope :math:`\hat{\zeta}` for the first order polynomial
+        of the Langevin equation. In case of the third order polynomial drift, the uncertainty of the drift lope :math:`\hat{\zeta}`
+        is determined via simple Gaussian propagation of uncertainties. Several assumptions make the confidence bands to
+        optimistic, i.e. narrow. The model parameters are assumed to be uncorrelated and Gaussian distributed. The model
+        sample size of the MAP estimates is one. If this error propagation option is chosen for the third order drift polynomial,
+        the confidence levels are fixed to cred_percentiles = numpy.array([5,1]) to transform the marginal confidence bands
+        of the parameters into error via fixed transformation factors, i.e. 1.96 and 2.5525 for half-sided intervals.
+        After error propagation the drift slope error is transformed back via the same factors. The normally slightly asymmetric error
+        bounds are maintained and treated as if they would be half confidence intervals of a Gaussian. This formally not correct,
+        but maintains the information about asymmetry of the error bands in general for a first guess.
+        Only in the rare case of high amounts of data per window, the confidence bands computed by this procedure might be
+        trustworthy in the case of a third order polynomial drift term.
 
         :param printbool: Determines whether a detailed output is printed or not.
         :type printbool: Boolean
@@ -1256,107 +1279,51 @@ class LangevinEstimation(RocketFastResilienceEstimation):
         self.MAP_slope_errors = np.zeros(4)
         theta_error_sigLevel1 = np.zeros((self.ndim, 2))
         theta_error_sigLevel2 = np.zeros((self.ndim, 2))
-        # theta_error_sigLevel1[:, 0] = self.MAP_CI[:, 0]
-        # theta_error_sigLevel1[:, 1] = self.MAP_CI[:, 1]
-        # theta_error_sigLevel1[:, 0] = (self.MAP_CI[:, 1]-self.MAP_CI[:, 0])/3.92
-        # theta_error_sigLevel1[:, 1] = (self.MAP_CI[:, 1]-self.MAP_CI[:, 0])/3.92
-        theta_error_sigLevel1[:, 0] = self.MAP_CI[:, 0]/3.92/2.
-        theta_error_sigLevel1[:, 1] = self.MAP_CI[:, 1]/3.92/2.
-        # if all(np.round(theta_error_sigLevel1[:,0] + theta_error_sigLevel1[:,1], 2) == 0):
-        # 	print('TRUE')
-        # print('theta errors 1: ', theta_error_sigLevel1)
-        # theta_error_sigLevel2[:, 0] = self.MAP_CI[:, 2]
-        # theta_error_sigLevel2[:, 1] = self.MAP_CI[:, 3]
-        theta_error_sigLevel2[:, 0] = self.MAP_CI[:, 2]/5.15/2.
-        theta_error_sigLevel2[:, 1] = self.MAP_CI[:, 3]/5.15/2.
-        # theta_error_sigLevel2[:, 0] = (self.MAP_CI[:, 3]-self.MAP_CI[:, 2])/5.15
-        # theta_error_sigLevel2[:, 1] = (self.MAP_CI[:, 3]-self.MAP_CI[:, 2])/5.15
-        # print('theta_error_sigma1: ', theta_error_sigLevel1)
-        # print('theta_error_sigma2: ', theta_error_sigLevel2)
-        # if all(np.round(theta_error_sigLevel2[:,0] + theta_error_sigLevel2[:,1], 2) == 0):
-        # 	print('TRUE')
-        # print('theta errors 2: ', theta_error_sigLevel2)
+        theta_error_sigLevel1[:, 0] = self.MAP_CI[:, 0]
+        theta_error_sigLevel1[:, 1] = self.MAP_CI[:, 1]
+        theta_error_sigLevel1[:, 0] = self.MAP_CI[:, 0]
+        theta_error_sigLevel1[:, 1] = self.MAP_CI[:, 1]
+
+        theta_error_sigLevel2[:, 0] = self.MAP_CI[:, 2]
+        theta_error_sigLevel2[:, 1] = self.MAP_CI[:, 3]
+        theta_error_sigLevel2[:, 0] = self.MAP_CI[:, 2]/2.5525
+        theta_error_sigLevel2[:, 1] = self.MAP_CI[:, 3]/2.5525
+
         # compute worst case lower bound
         if self.drift_model == '3rd order polynomial':
+            data_window_error = np.sqrt(1./(self.data_window.size) * np.var(self.data_window))
+            X_error = (2 * self.MAP_theta[2, 0] + 6 * self.fixed_point_estimate *
+                       self.MAP_theta[3, 0]) * data_window_error
             param1_error = 1 * theta_error_sigLevel1[1, 0]
             param2_error = 2 * self.fixed_point_estimate * theta_error_sigLevel1[2, 0]
             param3_error = 3 * self.fixed_point_estimate ** 2 * theta_error_sigLevel1[3, 0]
-            self.MAP_slope_errors[0] = param1_error + param2_error + param3_error
-
-            # self.MAP_slope_errors[0] =theta_error_sigLevel1[0,0] + param1_error + param2_error + param3_error
-            #self.MAP_slope_errors[0] = np.sqrt(param1_error**2 + param2_error**2 + param3_error**2)
-            # self.MAP_slope_errors[0] = abs(theta_error_sigLevel1[0, 0]) + abs(param1_error) + abs(param2_error) + abs(param3_error)
-            #slope_deviation_statistics = np.zeros((2,self.ndim))
-            #for k in range(2):
-            #    for i in range(self.ndim):
-            #        MAP_conservation = self.MAP_theta
-            #        slope_conservation = self.drift_slope
-            #        dev = np.zeros(self.ndim)
-            #        dev[i] += theta_error_sigLevel1[i,k]
-            #        self.MAP_theta[:,0] = self.MAP_theta[:,0] + dev
-            #        self._MAP_third_order_polynom_slope_in_fixed_point()
-            #        slope_deviation_statistics[k,i] = self.drift_slope[0]
-            #        self.MAP_theta = MAP_conservation
-            #        self.drift_slope = slope_conservation
-
-            #self.MAP_slope_errors[0] = np.sqrt(np.sum((slope_deviation_statistics[0,:]-self.drift_slope[0])**2))
-            #self.MAP_slope_errors[1] = np.sqrt(np.sum((slope_deviation_statistics[1, :] - self.drift_slope[0]) ** 2))
+            self.MAP_slope_errors[0] = np.sqrt(param1_error**2 + param2_error**2 + param3_error**2 + X_error**2)
 
             # compute worst case upper bound
             param1_error = 1 * theta_error_sigLevel1[1, 1]
             param2_error = 2 * self.fixed_point_estimate * theta_error_sigLevel1[2, 1]
             param3_error = 3 * self.fixed_point_estimate ** 2 * theta_error_sigLevel1[3, 1]
-            self.MAP_slope_errors[1] = param1_error + param2_error + param3_error
-
-            # self.MAP_slope_errors[1] = theta_error_sigLevel1[0,0] + param1_error + param2_error + param3_error
-            # self.MAP_slope_errors[1] = abs(theta_error_sigLevel1[0, 0]) + abs(param1_error) + abs(param2_error) + abs(
-            #     param3_error)
-            #self.MAP_slope_errors[1] = np.sqrt(param1_error ** 2 + param2_error ** 2 + param3_error ** 2)
+            self.MAP_slope_errors[1] = np.sqrt(param1_error ** 2 + param2_error ** 2 + param3_error ** 2 + X_error**2)
 
             # compute worst case lower bound
             param1_error = 1 * theta_error_sigLevel2[1, 0]
             param2_error = 2 * self.fixed_point_estimate * theta_error_sigLevel2[2, 0]
             param3_error = 3 * self.fixed_point_estimate ** 2 * theta_error_sigLevel2[3, 0]
-            self.MAP_slope_errors[2] = param1_error + param2_error + param3_error
-
-            # self.MAP_slope_errors[2] = theta_error_sigLevel1[0,0] + param1_error + param2_error + param3_error
-            # self.MAP_slope_errors[2] = abs(theta_error_sigLevel1[0, 0]) + abs(param1_error) + abs(param2_error) + abs(
-            #     param3_error)
-            # self.MAP_slope_errors[2] = np.sqrt(param1_error ** 2 + param2_error ** 2 + param3_error ** 2)
+            self.MAP_slope_errors[2] = np.sqrt(param1_error ** 2 + param2_error ** 2 + param3_error ** 2 + X_error**2) * 2.5525
 
             # compute worst case upper bound
             param1_error = 1 * theta_error_sigLevel2[1, 1]
             param2_error = 2 * self.fixed_point_estimate * theta_error_sigLevel2[2, 1]
             param3_error = 3 * self.fixed_point_estimate ** 2 * theta_error_sigLevel2[3, 1]
-            self.MAP_slope_errors[3] = param1_error + param2_error + param3_error
-            # self.MAP_slope_errors[3] = theta_error_sigLevel1[0,0] + param1_error + param2_error + param3_error
-            # self.MAP_slope_errors[3] = abs(theta_error_sigLevel1[0, 0]) + abs(param1_error) + abs(param2_error) + abs(
-            #     param3_error)
-            # self.MAP_slope_errors[3] = np.sqrt(param1_error ** 2 + param2_error ** 2 + param3_error ** 2)
-
-            #slope_deviation_statistics = np.zeros((2, self.ndim))
-            #for k in range(2):
-            #    for i in range(self.ndim):
-            #       MAP_conservation = self.MAP_theta
-            #       slope_conservation = self.drift_slope
-            #       dev = np.zeros(self.ndim)
-            #       dev[i] += theta_error_sigLevel2[i, k]
-            #       self.MAP_theta[:, 0] = self.MAP_theta[:, 0] + dev
-            #       self._MAP_third_order_polynom_slope_in_fixed_point()
-            #       slope_deviation_statistics[k, i] = self.drift_slope[0]
-            #       self.MAP_theta = MAP_conservation
-            #       self.drift_slope = slope_conservation
-
-            #self.MAP_slope_errors[2] = np.sqrt(np.sum((slope_deviation_statistics[0, :] - self.drift_slope[0]) ** 2))
-            #self.MAP_slope_errors[3] = np.sqrt(np.sum((slope_deviation_statistics[1, :] - self.drift_slope[0]) ** 2))
+            self.MAP_slope_errors[3] = np.sqrt(param1_error ** 2 + param2_error ** 2 + param3_error ** 2 + X_error**2) * 2.5525
 
         elif self.drift_model == 'linear model':
             self.MAP_slope_errors = np.array([theta_error_sigLevel1[1, 0], theta_error_sigLevel1[1, 1],
                                               theta_error_sigLevel2[1, 0], theta_error_sigLevel2[1, 1]])
-        self.drift_slope[1] = self.drift_slope[0] + (self.MAP_slope_errors[0])*3.92/2.
-        self.drift_slope[2] = self.drift_slope[0] + (self.MAP_slope_errors[1])*3.92/2.
-        self.drift_slope[3] = self.drift_slope[0] + (self.MAP_slope_errors[2])*5.15/2.
-        self.drift_slope[4] = self.drift_slope[0] + (self.MAP_slope_errors[3])*5.15/2.
+        self.drift_slope[1] = self.drift_slope[0] - (self.MAP_slope_errors[0])
+        self.drift_slope[2] = self.drift_slope[0] + (self.MAP_slope_errors[1])
+        self.drift_slope[3] = self.drift_slope[0] - (self.MAP_slope_errors[2])
+        self.drift_slope[4] = self.drift_slope[0] + (self.MAP_slope_errors[3])
         if printbool:
             print('MAP_slope_errors: ', self.MAP_slope_errors)
             print('drift_slope array: ', self.drift_slope)
@@ -1368,8 +1335,13 @@ class LangevinEstimation(RocketFastResilienceEstimation):
         """
         Helper function that determines the symmetric uncertainty bands of the MAP slope estimates via
         Gaussian propagation of uncertainties. The underlying marginal uncertainties of the ``MAP_theta``
-        are estimated via Wilks' theorem and the higher deviation of each estimated ``MAP_theta`` is used
-        to define symmetric uncertainty intervals.
+        are estimated via Wilks' theorem and the higher deviation of each estimated ``MAP_theta`` is interpreted
+        as symmetric error bound. The deviations are propagated in terms of error bounds.
+        The error bound of the fixed point estimate is assumed to be equal to a Gaussian :math:`3\sigma` -confidence
+        band.
+        The estimation tends to be to optimistic, i.e. the uncertainty bounds are to narrow. The MAP estimation tends
+        to vary to strong for subsequent windows. It is only useful in the very rare case of very high amounts of
+        stationary data per window. It is recommended to use the summary statistics uncertainty bands.
 
         :param printbool: Determines whether a detailed output is printed or not.
         :type printbool: Boolean
@@ -1380,26 +1352,26 @@ class LangevinEstimation(RocketFastResilienceEstimation):
             print('Compute symmetric slope error margins.')
             print('______________________________________________')
         self.fixed_point_estimate = np.mean(self.data_window)
+        data_window_error = np.sqrt(1. / (self.data_window.size) * np.var(self.data_window)) * 2.5525
+        X_error_bound = abs(2 * self.MAP_theta[2, 0] + 6 * self.fixed_point_estimate *
+                   self.MAP_theta[3, 0]) * data_window_error
         self.MAP_slope_margin = np.zeros(2)
         theta_error_sigLevel1 = np.zeros((self.ndim, 2))
         theta_error_sigLevel2 = np.zeros((self.ndim, 2))
         theta_error_sigLevel1[:, 0] = self.MAP_CI[:, 0]
         theta_error_sigLevel1[:, 1] = self.MAP_CI[:, 1]
         theta_margin1 = np.maximum(np.absolute(theta_error_sigLevel1[1:, 0]), theta_error_sigLevel1[1:, 1])
-
         theta_error_sigLevel2[:, 0] = self.MAP_CI[:, 2]
         theta_error_sigLevel2[:, 1] = self.MAP_CI[:, 3]
         theta_margin2 = np.maximum(np.absolute(theta_error_sigLevel2[1:, 0]), theta_error_sigLevel2[1:, 1])
-
         param1_margin = 1 * theta_margin1[0]
         param2_margin = 2 * np.absolute(self.fixed_point_estimate) * theta_margin1[1]
         param3_margin = 3 * self.fixed_point_estimate ** 2 * theta_margin1[2]
-        self.MAP_slope_margin[0] = param1_margin + param2_margin + param3_margin
-
+        self.MAP_slope_margin[0] = param1_margin + param2_margin + param3_margin + X_error_bound
         param1_margin = 1 * theta_margin2[0]
         param2_margin = 2 * np.absolute(self.fixed_point_estimate) * theta_margin2[1]
         param3_margin = 3 * self.fixed_point_estimate ** 2 * theta_margin2[2]
-        self.MAP_slope_margin[1] = param1_margin + param2_margin + param3_margin
+        self.MAP_slope_margin[1] = param1_margin + param2_margin + param3_margin + X_error_bound
         self.drift_slope[1] = self.drift_slope[0] - self.MAP_slope_margin[0]
         self.drift_slope[2] = self.drift_slope[0] + self.MAP_slope_margin[0]
         self.drift_slope[3] = self.drift_slope[0] - self.MAP_slope_margin[1]

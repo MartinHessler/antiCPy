@@ -2,6 +2,7 @@ import numpy as np
 import multiprocessing as mp
 
 import antiCPy.early_warnings.drift_slope.langevin_estimation
+from .summary_statistics_helper import _summary_statistics_helper
 
 class RocketFastResilienceEstimation():
     """
@@ -230,8 +231,8 @@ class RocketFastResilienceEstimation():
 
 
     def fast_MAP_resilience_scan(self, window_size, window_shift, num_processes = 'half',
-                                    cred_percentiles=np.array([16, 1]), symmetric_error=False,
-                                    print_progress=True, print_details=False,
+                                    cred_percentiles=np.array([16, 1]), error_propagation='summary statistics',
+                                    summary_window_size = 10, sigma_multiples = np.array([1,3]), print_progress=True, print_details=False,
                                     slope_save_name='default_save_slopes', noise_level_save_name='default_save_noise',
                                     OU_param_save_name='default_save_OUparam', X_coupling_save_name='default_save_Xcoupling',
                                     save=True, print_time_scale_info = False):
@@ -239,6 +240,9 @@ class RocketFastResilienceEstimation():
         The function's structure to use is almost equivalent to ``perform_MAP_resilience_scan`` of the ``LangevinEstimation``, ``BinningLangevinEstimation`` and the
         ``NonMarkovEstimation`` class. It initializes a multiprocessing pool to calculate several rolling windows simultaneously.
         """
+        if error_propagation == 'uncorrelated Gaussian' and self.drift_model == '3rd order polynomial':
+            print('HINT: Fixed cred_percentiles = numpy.array[5,1]) for the uncorrelated Gaussian error propagation '
+                  'of the drift slope is used for drift_model == `3rd_order_polynomial`.')
         self.window_size = window_size
         self.window_shift = window_shift
         self.loop_range = np.arange(0, self.data_size - self.window_size, self.window_shift)
@@ -263,13 +267,13 @@ class RocketFastResilienceEstimation():
             initargs = (self.antiCPyObject, self.data, self.time,
                                self.loop_range, self.window_size, cred_percentiles,
                                print_details, print_progress, self.drift_model, self.diffusion_model, self.slope_storage,
-                               self.noise_level_storage, symmetric_error,
+                               self.noise_level_storage, error_propagation, summary_window_size, sigma_multiples,
                                self.prior_range, self.prior_type, self.scales)
         elif self.antiCPyObject == 'BinningLangevinEstimation':
             initargs = (self.antiCPyObject, self.data, self.time,
                                self.loop_range, self.window_size, cred_percentiles,
                                print_details, print_progress, self.drift_model, self.diffusion_model, self.slope_storage,
-                               self.noise_level_storage, symmetric_error,
+                               self.noise_level_storage, error_propagation, summary_window_size, sigma_multiples,
                                self.prior_range, self.prior_type, self.scales, self._bin_num)
         elif self.antiCPyObject == 'NonMarkovEstimation':
             self.OU_param_storage = mp.RawArray('d', 5 * loop_range_size)
@@ -277,7 +281,8 @@ class RocketFastResilienceEstimation():
             initargs = (self.antiCPyObject, self.data, self.time,
                                self.loop_range, self.window_size, cred_percentiles,
                                print_details, print_progress, self.drift_model, self.diffusion_model, self.slope_storage,
-                               self.noise_level_storage, symmetric_error, self.prior_range, self.prior_type, self.scales,
+                               self.noise_level_storage, error_propagation, summary_window_size, sigma_multiples,
+                               self.prior_range, self.prior_type, self.scales,
                                None, self.OU_param_storage, self.X_coupling_storage,
                                self.Y_model, self.Y_drift_model,
                                self.Y_diffusion_model, self.activate_time_scale_separation_prior, self.slow_process,
@@ -292,6 +297,9 @@ class RocketFastResilienceEstimation():
             print('Parallel processing finished!')
         self.slope_storage = np.frombuffer(self.slope_storage).reshape((5, loop_range_size))
         self.noise_level_storage = np.frombuffer(self.noise_level_storage).reshape((5, loop_range_size))
+        if error_propagation == 'summary statistics':
+            self.slope_storage = _summary_statistics_helper(self.slope_storage, summary_window_size, sigma_multiples)
+            self.noise_level_storage = _summary_statistics_helper(self.noise_level_storage, summary_window_size, sigma_multiples)
         if self.antiCPyObject == 'NonMarkovEstimation':
             self.OU_param_storage = np.frombuffer(self.OU_param_storage).reshape((5,loop_range_size))
             self.X_coupling_storage = np.frombuffer(self.X_coupling_storage).reshape((5, loop_range_size))
@@ -305,7 +313,7 @@ class RocketFastResilienceEstimation():
     @staticmethod
     def init_parallel_MAP_Langevin(antiCPyObject, data, time, loop_range, window_size, cred_percentiles, print_details,
                                    print_progress, drift_model, diffusion_model, slope_storage_connector, noise_storage_connector,
-                                   symmetric_error, prior_range, prior_type, scales, bin_num = None, OU_param_storage_connector = None,
+                                   error_propagation, summary_window_size, sigma_multiples, prior_range, prior_type, scales, bin_num = None, OU_param_storage_connector = None,
                                    X_coupling_storage_connector = None, Y_model = None, Y_drift_model = None,
                                    Y_diffusion_model = None, activate_time_scale_separation_prior = False, slow_process = False,
                                    time_scale_separation_factor = None, max_likelihood_starting_guesses = None, print_time_scale_info = None):
@@ -326,7 +334,9 @@ class RocketFastResilienceEstimation():
         init_dict['diffusion_model'] = diffusion_model
         init_dict['cred_percentiles'] = cred_percentiles
         init_dict['print_details'] = print_details
-        init_dict['symmetric_error'] = symmetric_error
+        init_dict['error_propagation'] = error_propagation
+        init_dict['summary_window_size'] = summary_window_size
+        init_dict['sigma_multiples'] = sigma_multiples
         init_dict['prior_type'] = prior_type
         init_dict['prior_range'] = prior_range
         init_dict['scales'] = scales
@@ -369,8 +379,12 @@ class RocketFastResilienceEstimation():
                                                                                                           prior_type=init_dict['prior_type'], prior_range=init_dict['prior_range'],
                                                                                                           scales = init_dict['scales'])
             one_window_helper.perform_MAP_resilience_scan(init_dict['window_size'], window_shift=2,
-                                                          cred_percentiles=init_dict['cred_percentiles'], symmetric_error=init_dict['symmetric_error'],
-                                                          print_details=init_dict['print_details'], print_progress=False)
+                                                          cred_percentiles=init_dict['cred_percentiles'],
+                                                          error_propagation=init_dict['error_propagation'],
+                                                          summary_window_size=init_dict['summary_window_size'],
+                                                          sigma_multiples=init_dict['sigma_multiples'],
+                                                          print_details=init_dict['print_details'], print_progress=False,
+                                                          print_hint=False, fastMAPflag=True)
         elif init_dict['antiCPyObject'] == 'BinningLangevinEstimation':
             one_window_helper = antiCPy.early_warnings.drift_slope.binning_langevin_estimation.BinningLangevinEstimation(data, time,
                                                                                                                          init_dict['bin_num'], drift_model = init_dict['drift_model'],
@@ -378,8 +392,12 @@ class RocketFastResilienceEstimation():
                                                                                                                          prior_type = init_dict['prior_type'],
                                                                                                                          prior_range = init_dict['prior_range'], scales = init_dict['scales'])
             one_window_helper.perform_MAP_resilience_scan(init_dict['window_size'], window_shift=2,
-                                                          cred_percentiles=init_dict['cred_percentiles'], symmetric_error=init_dict['symmetric_error'],
-                                                          print_details=init_dict['print_details'], print_progress=False)
+                                                          cred_percentiles=init_dict['cred_percentiles'],
+                                                          error_propagation=init_dict['error_propagation'],
+                                                          summary_window_size=init_dict['summary_window_size'],
+                                                          sigma_multiples=init_dict['sigma_multiples'],
+                                                          print_details=init_dict['print_details'], print_progress=False,
+                                                          print_hint=False, fastMAPflag=True)
         elif init_dict['antiCPyObject'] == 'NonMarkovEstimation':
             OU_storage_helper = np.frombuffer(shared_memory_dict['OU_param_storage_connector']).reshape(5,init_dict['loop_range_size'])
             X_coupling_storage_helper = np.frombuffer(shared_memory_dict['X_coupling_storage_connector']).reshape(5, init_dict[
@@ -393,15 +411,19 @@ class RocketFastResilienceEstimation():
                                                                                                              slow_process=init_dict['slow_process'], time_scale_separation_factor=init_dict['time_scale_separation_factor'],
                                                                                                              max_likelihood_starting_guesses=init_dict['max_likelihood_starting_guesses'])
             one_window_helper.perform_MAP_resilience_scan(init_dict['window_size'], window_shift=2,
-                                                          cred_percentiles=init_dict['cred_percentiles'], symmetric_error=init_dict['symmetric_error'],
-                                                          print_details=init_dict['print_details'], print_progress=False, save=False,
-                                                          print_time_scale_info = init_dict['print_time_scale_info'])
+                                                          cred_percentiles=init_dict['cred_percentiles'],
+                                                          error_propagation=init_dict['error_propagation'],
+                                                          summary_window_size=init_dict['summary_window_size'],
+                                                          sigma_multiples=init_dict['sigma_multiples'],
+                                                          print_details=init_dict['print_details'],
+                                                          print_progress=False, save=False,
+                                                          print_time_scale_info=init_dict['print_time_scale_info'],
+                                                          print_hint=False, fastMAPflag=True)
         slope_storage_helper[:, m] = one_window_helper.slope_storage[:, 0]
         noise_storage_helper[:, m] = one_window_helper.noise_level_storage[:, 0]
         if init_dict['antiCPyObject'] == 'NonMarkovEstimation':
             OU_storage_helper[:, m] = one_window_helper.OU_param_storage[:, 0]
             X_coupling_storage_helper[:, m] = one_window_helper.X_coupling_storage[:, 0]
-
 
 
 def custom_error_callback(error):

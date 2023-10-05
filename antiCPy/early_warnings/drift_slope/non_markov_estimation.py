@@ -10,6 +10,7 @@ import celerite
 from celerite import terms
 
 from antiCPy.early_warnings.drift_slope.langevin_estimation import LangevinEstimation
+from .summary_statistics_helper import _summary_statistics_helper
 
 class NonMarkovEstimation(LangevinEstimation):
     """
@@ -218,7 +219,7 @@ class NonMarkovEstimation(LangevinEstimation):
             print('ERROR: Diffusion model of X is not defined!')
 
         self.ndim = self.num_X_drift_params + self.num_X_coupling_term_params + self.num_Y_model_params
-        if max_likelihood_starting_guesses.any() == None:
+        if np.all(max_likelihood_starting_guesses == None):
             self.max_likelihood_starting_guesses = np.ones(self.ndim)
         else:
             self.max_likelihood_starting_guesses = max_likelihood_starting_guesses
@@ -249,6 +250,9 @@ class NonMarkovEstimation(LangevinEstimation):
                 self.slow_process = slow_process
             else:
                 print('ERROR: Time scale separation prior is activated without defining the slow process!')
+        else:
+            self.slow_process = slow_process
+            self.time_scale_separation_factor = time_scale_separation_factor
         self.theta = np.zeros(self.ndim)
         if detrending_of_whole_dataset == None:
             self.data = data
@@ -1217,13 +1221,14 @@ class NonMarkovEstimation(LangevinEstimation):
         return vspan_window, noise_pdf_line, drift_slope_line, noise_line, CB_slope_I, CB_slope_II, CB_noise_I, CB_noise_II
 
     def perform_MAP_resilience_scan(self, window_size, window_shift,
-                                    cred_percentiles=np.array([16, 1]), symmetric_error=False,
+                                    cred_percentiles=np.array([16, 1]), error_propagation='summary statistics',
+                                    summary_window_size = 10, sigma_multiples = np.array([1,3]),
                                     print_progress=True, print_details=False,
                                     slope_save_name='default_save_slopes',
                                     noise_level_save_name='default_save_noise', save=True,
                                     create_plot=False, ani_save_name='default_animation_name',
                                     animation_title='', mark_critical_point=None,
-                                    mark_noise_level=None, print_time_scale_info = False):
+                                    mark_noise_level=None, print_time_scale_info = False, print_hint = True, fastMAPflag = False):
         """
         Performs an automated MAP window scan with defined `window_shift` over the whole time series. This might be
         the first approach for a non-Markovian estimation, since the MCMC computations are time-consuming. In each
@@ -1239,12 +1244,33 @@ class NonMarkovEstimation(LangevinEstimation):
                         Default is `numpy.array([16,1])`.
 
         :type cred_percentiles: One-dimensional numpy array of integers.
-        :param symmetric_error: If ``True``, the highest uncertainty of each estimated ``MAP_theta`` is used
-                        to define symmetric confidence bands that are used for the Gaussian error propagation
-                        results for the drift slope that are stored in ``MAP_slope_margin``. If ``False``,
-                        the asymmetric confidence bands of the ``MAP_theta`` are used.
+        :param error_propagation: Defines the method that is used to compute the confidence bands. Default is
+                        ``'summary statistics``. In that case drift slope samples of size ``summary_window_size`` are
+                        used to compute the drift slope mean and its standard error. The parameter ``sigma_multiples``
+                        defines the width of the summary statistics' symmetric error bands.
+                        If ``'error bound'`` or ``'uncorrelated Gaussian'`` is chosen, the marginal uncertainties
+                        corresponding to ``cred_percentiles`` are computed employing Wilks' theorem. With ``'error bound'``
+                        the highest uncertainties per parameter and ``cred_percentiles`` level is interpreted as a symmetric
+                        worst case bound of the error. If  ``'uncorrelated Gaussian'`` is chosen, the uncertainties are
+                        treated corresponding to the slight asymmetric results of the Wilks' theorem confidence intervals.
+                        Both options give trustworthy results in the case of a first order polynomial drift. In case of the
+                        third order polynomial drift they are too optimistic, i.e. narrow, since the error bounds
+                        (``'error bound'``) or errors (``'uncorrelated Gaussian'``) are propagated without regard of
+                        correlations in the model parameters. Furthermore, the ``'uncorrelated Gaussian'`` option keeps
+                        the slightly asymmetric errors proposed by Wilks' theorem for the marginal parameter distributions.
+                        This small formal incorrectness is to maintain information about asymmetry in the estimates in a
+                        first guess. The ``cred_percentiles`` are fixed to ``cred_percentiles = numpy.array([5,1])`` to
+                        transform the half confidence bands under the assumption of Gaussian distributions by the factors
+                        1.96 and 2.5525, respectively. The propagated result is transformed back.
 
-        :type symmetric_error: Boolean
+                        .. hint::
+                            The options ``'error bound'`` and ``'uncorrelated Gaussian'`` are only trustworthy for a linear
+                            drift term. They might also be correct for a third order polynomial drift in the case ofvery
+                            high amounts of data per window. Otherwise, the default ``'summary statistics'`` should be used,
+                            unless the window shift is very high. In that case it might introduce a too strong delay due
+                            to the averaging procedure.
+
+        :type error_propagation: str
         :param print_progress: If `True` the progress of the MAP estimation per window is shown.
                         Default is `False`.
 
@@ -1268,7 +1294,26 @@ class NonMarkovEstimation(LangevinEstimation):
         :param create_plot: If ``True``, the MAP resilience scan results are plotted. Default is ``False``.
                         NOTE: Not implemented yet.
         :type create_plot: Boolean
+        :param summary_window_size: If ``error_propagation = 'summary statistics'`` is chosen, the parameter defines
+                        the number of drift slope estimates to use in a window summary statistic. The windows are shifted
+                        by one.
+        :type summary_window_size: int
+        :param sigma_multiples: The array hast two entries. If ``error_propagation = 'summary statistics'`` is chosen,
+                        the entries define the drift slope standard error multiples which are used to calculate the
+                        uncertainty bands.
+        :type sigma_multiples: One dimensional numpy array of float .
         """
+        if error_propagation == 'uncorrelated Gaussian' and self.drift_model == '3rd order polynomial':
+            credibility_bands = np.array([5,1])
+            if print_hint:
+                print('HINT: Fixed cred_percentiles = numpy.array[5,1]) for the uncorrelated Gaussian error propagation '
+                      'of the drift slope is used for drift_model == `3rd_order_polynomial`.')
+        elif error_propagation == 'uncorrelated Gaussian' and self.drift_model == 'first order polynomial':
+            credibility_bands = cred_percentiles
+        elif error_propagation == 'error bound':
+            credibility_bands = cred_percentiles
+        elif not error_propagation == 'summary statistics':
+            print('ERROR: No suitable error_propagation option defined.')
         self.window_size = window_size
         self.window_shift = window_shift
         self.data_window = np.zeros(window_size)
@@ -1284,7 +1329,7 @@ class NonMarkovEstimation(LangevinEstimation):
                     print(
                         'Calculate MAP resilience for window ' + str(i + 1) + ' of ' + str(self.loop_range.size) + '.')
                 self.window_shift = self.loop_range[i]
-                self._calc_MAP_resilience(cred_percentiles, symmetric_error, print_details, print_time_scale_info)
+                self._calc_MAP_resilience(cred_percentiles, error_propagation, print_details, print_time_scale_info)
                 self.slope_storage[:, i] = self.drift_slope
                 self.noise_level_storage[:, i] = self.noise_level_estimate
                 if self.Y_model == 'Ornstein-Uhlenbeck noise':
@@ -1292,13 +1337,16 @@ class NonMarkovEstimation(LangevinEstimation):
                     self.X_coupling_storage[:, i] = self.X_coupling_estimate
                 else:
                     print('ERROR: Y model is unknown.')
+        if error_propagation == 'summary statistics' and not fastMAPflag:
+            self.slope_storage = _summary_statistics_helper(self.slope_storage, summary_window_size, sigma_multiples)
+            self.noise_level_storage = _summary_statistics_helper(self.noise_level_storage, summary_window_size, sigma_multiples)
         elif create_plot:
             print('The MAP plot feature is not implemented yet.')
         if save:
             np.save(slope_save_name, self.slope_storage)
             np.save(noise_level_save_name, self.noise_level_storage)
 
-    def _calc_MAP_resilience(self, cred_percentiles, symmetric_error, print_details, print_time_scale_info):
+    def _calc_MAP_resilience(self, cred_percentiles, error_propagation, print_details, print_time_scale_info):
         """
         Helper function that computes the MAP estimates of drift slope :math:`\hat{\zeta}`, noise level
         :math:`\hat{\psi}`, X coupling strength and OU parameter with corresponding confidence bands created with
@@ -1348,16 +1396,16 @@ class NonMarkovEstimation(LangevinEstimation):
         if self.Y_model == 'Ornstein-Uhlenbeck noise':
             self.OU_param_estimate = self.MAP_theta[-1, :]
             self.X_coupling_estimate = self.MAP_theta[-2, :]
-        if symmetric_error:
+        if error_propagation == 'error bound':
             self._compute_slope_error_margin(printbool=print_details)
             self._compute_noise_error_margin(printbool=print_details)
-        else:
+        elif error_propagation == 'uncorrelated Gaussian':
             self._compute_slope_errors(printbool=print_details)
             self._compute_noise_errors(printbool=print_details)
 
     def _compute_noise_errors(self, printbool):
         """
-        Helper function that determines the asymmetric uncertainty bands of the MAP slope estimates via
+        Helper function that determines the asymmetric uncertainty bands of the MAP noise estimates via
         Gaussian propagation of uncertainties. The underlying marginal uncertainties of the ``MAP_theta``
         are estimated via Wilks' theorem.
 
@@ -1372,36 +1420,31 @@ class NonMarkovEstimation(LangevinEstimation):
         self.MAP_noise_errors = np.zeros(4)
         theta_error_sigLevel1 = np.zeros((self.ndim, 2))
         theta_error_sigLevel2 = np.zeros((self.ndim, 2))
-        theta_error_sigLevel1[:, 0] = self.MAP_CI[:, 0]
-        theta_error_sigLevel1[:, 1] = self.MAP_CI[:, 1]
-        # if all(np.round(theta_error_sigLevel1[:,0] + theta_error_sigLevel1[:,1], 2) == 0):
-        # 	print('TRUE')
-        # print('theta errors 1: ', theta_error_sigLevel1)
-        theta_error_sigLevel2[:, 0] = self.MAP_CI[:, 2]
-        theta_error_sigLevel2[:, 1] = self.MAP_CI[:, 3]
-        # if all(np.round(theta_error_sigLevel2[:,0] + theta_error_sigLevel2[:,1], 2) == 0):
-        # 	print('TRUE')
-        # print('theta errors 2: ', theta_error_sigLevel2)
-        # compute worst case lower bound
+        theta_error_sigLevel1[:, 0] = self.MAP_CI[:, 0]/1.96
+        theta_error_sigLevel1[:, 1] = self.MAP_CI[:, 1]/1.96
+
+        theta_error_sigLevel2[:, 0] = self.MAP_CI[:, 2]/2.5525
+        theta_error_sigLevel2[:, 1] = self.MAP_CI[:, 3]/2.5525
+
         if self.Y_model == 'Ornstein-Uhlenbeck noise':
-            param1_error = self.MAP_theta[5, 0] * self.dt * theta_error_sigLevel1[4, 0]
-            param2_error = self.MAP_theta[4, 0] * self.dt * theta_error_sigLevel1[5, 0]
-            self.MAP_noise_errors[0] = param1_error + param2_error
-            param1_error = self.MAP_theta[5, 1] * self.dt * theta_error_sigLevel1[4, 1]
-            param2_error = self.MAP_theta[4, 1] * self.dt * theta_error_sigLevel1[5, 1]
-            self.MAP_noise_errors[1] = param1_error + param2_error
-            param1_error = self.MAP_theta[5, 0] * self.dt * theta_error_sigLevel2[4, 0]
-            param2_error = self.MAP_theta[4, 0] * self.dt * theta_error_sigLevel2[5, 0]
-            self.MAP_noise_errors[2] = param1_error + param2_error
-            param1_error = self.MAP_theta[5, 1] * self.dt * theta_error_sigLevel2[4, 1]
-            param2_error = self.MAP_theta[4, 1] * self.dt * theta_error_sigLevel2[5, 1]
-            self.MAP_noise_errors[3] = param1_error + param2_error
+            param1_error = 1./self.MAP_theta[5, 0] * self.dt * theta_error_sigLevel1[4, 0]
+            param2_error = -self.MAP_theta[4, 0] * 1./self.MAP_theta[5,0]**2 * self.dt * theta_error_sigLevel1[5, 0]
+            self.MAP_noise_errors[0] = np.sqrt(param1_error**2 + param2_error**2) * 1.96
+            param1_error = 1./self.MAP_theta[5, 1] * self.dt * theta_error_sigLevel1[4, 1]
+            param2_error = -self.MAP_theta[4, 1] * 1./self.MAP_theta[5,0]**2 * self.dt * theta_error_sigLevel1[5, 1]
+            self.MAP_noise_errors[1] = np.sqrt(param1_error**2 + param2_error**2) * 1.96
+            param1_error = 1./self.MAP_theta[5, 0] * self.dt * theta_error_sigLevel2[4, 0]
+            param2_error = -self.MAP_theta[4, 0] * 1./self.MAP_theta[5,0]**2 * self.dt * theta_error_sigLevel2[5, 0]
+            self.MAP_noise_errors[2] = np.sqrt(param1_error**2 + param2_error**2) * 2.5525
+            param1_error = 1./self.MAP_theta[5, 1] * self.dt * theta_error_sigLevel2[4, 1]
+            param2_error = -self.MAP_theta[4, 1] * 1./self.MAP_theta[5,0]**2 * self.dt * theta_error_sigLevel2[5, 1]
+            self.MAP_noise_errors[3] = np.sqrt(param1_error**2 + param2_error**2) * 2.5525
         else:
             print('ERROR: Y_model is not known.')
 
-        self.noise_level_estimate[1] = self.noise_level_estimate[0] + self.MAP_noise_errors[0]
+        self.noise_level_estimate[1] = self.noise_level_estimate[0] - self.MAP_noise_errors[0]
         self.noise_level_estimate[2] = self.noise_level_estimate[0] + self.MAP_noise_errors[1]
-        self.noise_level_estimate[3] = self.noise_level_estimate[0] + self.MAP_noise_errors[2]
+        self.noise_level_estimate[3] = self.noise_level_estimate[0] - self.MAP_noise_errors[2]
         self.noise_level_estimate[4] = self.noise_level_estimate[0] + self.MAP_noise_errors[3]
         if printbool:
             print('MAP_noise_errors: ', self.MAP_noise_errors)
@@ -1410,7 +1453,6 @@ class NonMarkovEstimation(LangevinEstimation):
             print('Done!')
             print('_____')
 
-    # numba.jit(nopython = True)
     def _compute_noise_error_margin(self, printbool):
         """
         Helper function that determines the symmetric uncertainty bands of the MAP slope estimates via
@@ -1429,22 +1471,21 @@ class NonMarkovEstimation(LangevinEstimation):
         self.MAP_noise_margin = np.zeros(2)
         theta_error_sigLevel1 = np.zeros((self.ndim, 2))
         theta_error_sigLevel2 = np.zeros((self.ndim, 2))
-        print(self.MAP_theta)
-        print(self.MAP_CI)
+
         theta_error_sigLevel1[:, 0] = self.MAP_CI[:, 0]
         theta_error_sigLevel1[:, 1] = self.MAP_CI[:, 1]
-        theta_margin1 = np.maximum(np.absolute(theta_error_sigLevel1[1:, 0]), theta_error_sigLevel1[1:, 1])
+        theta_margin1 = np.maximum(np.absolute(theta_error_sigLevel1[:, 0]), theta_error_sigLevel1[:, 1])
 
         theta_error_sigLevel2[:, 0] = self.MAP_CI[:, 2]
         theta_error_sigLevel2[:, 1] = self.MAP_CI[:, 3]
-        theta_margin2 = np.maximum(np.absolute(theta_error_sigLevel2[1:, 0]), theta_error_sigLevel2[1:, 1])
+        theta_margin2 = np.maximum(np.absolute(theta_error_sigLevel2[:, 0]), theta_error_sigLevel2[:, 1])
 
         if self.Y_model == 'Ornstein-Uhlenbeck noise':
-            param1_error = self.MAP_theta[5, 0] * self.dt * theta_margin1[4, 0]
-            param2_error = self.MAP_theta[4, 0] * self.dt * theta_margin1[5, 0]
+            param1_error = np.abs(1./self.MAP_theta[5, 0] * self.dt) * theta_margin1[4]
+            param2_error = np.abs(-self.MAP_theta[4, 0] * 1./self.MAP_theta[5,0]**2 * self.dt) * theta_margin1[5]
             self.MAP_noise_margin[0] = param1_error + param2_error
-            param1_error = self.MAP_theta[5, 1] * self.dt * theta_margin2[4, 1]
-            param2_error = self.MAP_theta[4, 1] * self.dt * theta_margin2[5, 1]
+            param1_error = np.abs(1./self.MAP_theta[5, 1] * self.dt) * theta_margin2[4]
+            param2_error = np.abs(-self.MAP_theta[4, 1] * 1./self.MAP_theta[5,0]**2 * self.dt) * theta_margin2[5]
             self.MAP_noise_margin[1] = param1_error + param2_error
 
         else:
@@ -1483,17 +1524,13 @@ class NonMarkovEstimation(LangevinEstimation):
 
         # Build the GP model
         tau = max(1.0, init / thin)
-        print(0.1 * np.var(z))
-        print(tau)
-        print(-np.log(0.5 * tau))
+
         kernel = terms.RealTerm(
             np.log(0.9 * np.var(z)),
             -np.log(tau),
             bounds=[(-50, 50), (-np.log(N), 50)],
         )
-        print(0.1 * np.var(z))
-        print(tau)
-        print(-np.log(0.5 * tau))
+
         kernel += terms.RealTerm(
             np.log(0.1 * np.var(z)),
             -np.log(0.5 * tau),
