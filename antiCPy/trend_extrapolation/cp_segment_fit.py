@@ -521,6 +521,9 @@ class CPSegmentFit:
 
     @staticmethod
     def batched_compute_CP_pdfs(m, lock):
+        """
+        Contains the working order to compute the marginal ordinal CP pdfs in a batchwise and parallelized manner.
+        """
         if init_dict['print_progress']:
             print('CP configuration ' + str(m + 1) + '/' + str(init_dict['num_MC_samples']))
         sum_cp_probs = np.frombuffer(shared_memory_dict['sum_cp_probs_connector'].get_obj()).reshape(
@@ -560,6 +563,23 @@ class CPSegmentFit:
 
 
     def compute_CP_pdfs(self, multiprocessing=True, num_processes='half', print_CPU_count=False, print_progress=True):
+        """
+        Computes the marginal ordinal CP pdfs and stores them in the attribute ``self.CP_pdfs``.
+
+        :param multiprocessing: If ``True``, the computations are parallelized on ``num_process`` workers. Default is ``True``.
+        :type multiprocessing: bool
+
+        :param num_processes: Default is ``'half'``. The computations are parallelized on half of the available CPU kernels.
+                              If ``'all'``, all kernels are used. You can also choose a specific number of CPU kernels
+                              for parallelization, if you pass an integer number here.
+        :type num_processes: str or int
+
+        :param print_CPU_count: If ``True``, the number of available CPU kernels on the machine is shown. Default is ``False``.
+        :type print_CPU_count: bool
+
+        :param print_progress: If ``True``, the already computed batches to total batches are shown. Default is ``True```.
+        :type print_progress: bool
+        """
         sum_cp_probs = mp.Array('d', self.n_cp * self.N)
         sum_cp_probs_count = mp.Array('d', self.n_cp * self.N)
         if not hasattr(self, 'completion_control'):
@@ -614,6 +634,10 @@ class CPSegmentFit:
                     self.CP_pdfs[j, i] = sum_cp_probs[j, i] / sum_cp_probs_count[j, i]
 
     def compute_expected_values_CP_positions(self):
+        """
+        Computes the expected value of each ordinal CP position of the model. Implemented only if the CP configurations
+        are stored in ``self.MC_cp_configurations``.
+        """
         self.expected_values_CP_positions = np.zeros(self.n_cp + 2)
         weighted_configs = np.zeros((self.n_MC_samples, self.n_cp + 2))
         for i in range(self.n_MC_samples):
