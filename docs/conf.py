@@ -15,21 +15,9 @@
 import os
 import sys
 
-# import matplotlib
-# matplotlib.use('Agg')
-# import matplotlib.pylab as plt
-# from matplotlib.animation import FuncAnimation
-# from scipy import optimize
-# import scipy.stats as cpy
-# import numba
-# import emcee
 
 sys.path.insert(0, os.path.abspath('..'))
 
-#importlib.import_module('scipy', package= None)
-# import numpy as np
-# import scipy
-# import antiCPy
 
 # -- Project information -----------------------------------------------------
 
