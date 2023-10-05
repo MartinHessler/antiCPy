@@ -13,7 +13,7 @@ setup(
     license='GPL',
     author='Martin Heßler',
     author_email='m_hess23@wwu.de',
-    install_requires=['numpy', 'matplotlib', 'scipy', 'numba', 'emcee'],
+    install_requires=['numpy', 'matplotlib', 'scipy', 'emcee', 'ipyparallel', 'celerite', 'statsmodels', 'scikit-learn', 'sphinx'],
     scripts=[],
     packages=find_packages(),
     description='A package that provides tools to estimate resilience and noise level of a system as well as extrapolate possible transition times.',
