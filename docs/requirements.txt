@@ -7,3 +7,4 @@ celerite
 statsmodels
 scikit-learn
 sphinx
+sphinx-rtd-theme
