@@ -2,7 +2,7 @@ import numpy as np
 import multiprocessing as mp
 
 import antiCPy.early_warnings.drift_slope.langevin_estimation
-from .summary_statistics_helper import _summary_statistics_helper
+from .summary_statistics_helper import summary_statistics_helper
 
 class RocketFastResilienceEstimation():
     """
@@ -298,8 +298,8 @@ class RocketFastResilienceEstimation():
         self.slope_storage = np.frombuffer(self.slope_storage).reshape((5, loop_range_size))
         self.noise_level_storage = np.frombuffer(self.noise_level_storage).reshape((5, loop_range_size))
         if error_propagation == 'summary statistics':
-            self.slope_storage = _summary_statistics_helper(self.slope_storage, summary_window_size, sigma_multiples)
-            self.noise_level_storage = _summary_statistics_helper(self.noise_level_storage, summary_window_size, sigma_multiples)
+            self.slope_storage = summary_statistics_helper(self.slope_storage, summary_window_size, sigma_multiples)
+            self.noise_level_storage = summary_statistics_helper(self.noise_level_storage, summary_window_size, sigma_multiples)
         if self.antiCPyObject == 'NonMarkovEstimation':
             self.OU_param_storage = np.frombuffer(self.OU_param_storage).reshape((5,loop_range_size))
             self.X_coupling_storage = np.frombuffer(self.X_coupling_storage).reshape((5, loop_range_size))

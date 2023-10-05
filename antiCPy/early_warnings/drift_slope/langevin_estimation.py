@@ -11,7 +11,7 @@ import ipyparallel as ipp
 import math as mh
 
 from antiCPy.early_warnings.drift_slope.rocket_fast_resilience_estimation import RocketFastResilienceEstimation
-from .summary_statistics_helper import _summary_statistics_helper
+from .summary_statistics_helper import summary_statistics_helper
 
 class LangevinEstimation(RocketFastResilienceEstimation):
     '''
@@ -1078,7 +1078,7 @@ class LangevinEstimation(RocketFastResilienceEstimation):
         elif create_plot:
             print('The MAP plot feature is not implemented yet.')
         if error_propagation == 'summary statistics' and not fastMAPflag:
-            self.slope_storage = _summary_statistics_helper(self.slope_storage, summary_window_size, sigma_multiples)
+            self.slope_storage = summary_statistics_helper(self.slope_storage, summary_window_size, sigma_multiples)
         if save:
             np.save(slope_save_name, self.slope_storage)
             np.save(noise_level_save_name, self.noise_level_storage)

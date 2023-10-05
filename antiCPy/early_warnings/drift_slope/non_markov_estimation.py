@@ -10,7 +10,7 @@ import celerite
 from celerite import terms
 
 from antiCPy.early_warnings.drift_slope.langevin_estimation import LangevinEstimation
-from .summary_statistics_helper import _summary_statistics_helper
+from .summary_statistics_helper import summary_statistics_helper
 
 class NonMarkovEstimation(LangevinEstimation):
     """
@@ -1338,8 +1338,8 @@ class NonMarkovEstimation(LangevinEstimation):
                 else:
                     print('ERROR: Y model is unknown.')
         if error_propagation == 'summary statistics' and not fastMAPflag:
-            self.slope_storage = _summary_statistics_helper(self.slope_storage, summary_window_size, sigma_multiples)
-            self.noise_level_storage = _summary_statistics_helper(self.noise_level_storage, summary_window_size, sigma_multiples)
+            self.slope_storage = summary_statistics_helper(self.slope_storage, summary_window_size, sigma_multiples)
+            self.noise_level_storage = summary_statistics_helper(self.noise_level_storage, summary_window_size, sigma_multiples)
         elif create_plot:
             print('The MAP plot feature is not implemented yet.')
         if save:
