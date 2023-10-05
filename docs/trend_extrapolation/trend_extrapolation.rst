@@ -31,7 +31,7 @@ avoids memory issues for a complicated CP segment fit with an arbitrary number o
     .. automodule:: antiCPy.trend_extrapolation.cp_segment_fit
         :members:
 
-    batched_configs_helper/batched_configs_helper.rst
+    batched_configs_helper/batched_configs_helper
 
 
 Bibliography

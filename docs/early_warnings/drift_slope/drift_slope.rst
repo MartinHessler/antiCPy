@@ -23,3 +23,4 @@ The detailed documentation of the `drift_slope` package can be found in the foll
         :show-inheritance:
 
     .. automodule:: antiCPy.early_warnings.drift_slope.summary_statistics_helper
+        :members:
