@@ -1,6 +1,6 @@
 import numpy as np
 
-def _summary_statistics_helper(metric, summary_window_size=10, sigma_multiples=np.array([1, 3])):
+def summary_statistics_helper(metric, summary_window_size=10, sigma_multiples=np.array([1, 3])):
     """
     Computes the mean of the drift slope :math:`\hat{\zeta}` and its standard error in a predefined summary
     statistics window.
