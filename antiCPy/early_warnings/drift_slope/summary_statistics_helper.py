@@ -1,6 +1,6 @@
 import numpy as np
 
-def _summary_statistics_helper(slope_storage, summary_window_size=10, sigma_multiples=np.array([1, 3])):
+def _summary_statistics_helper(metric, summary_window_size=10, sigma_multiples=np.array([1, 3])):
     """
     Computes the mean of the drift slope :math:`\hat{\zeta}` and its standard error in a predefined summary
     statistics window.
@@ -15,20 +15,20 @@ def _summary_statistics_helper(slope_storage, summary_window_size=10, sigma_mult
     :type sigma_multiples: One dimensional numpy array of float .
     """
     step_size = 1
-    drift_slope_size = slope_storage.shape[1]
+    drift_slope_size = metric.shape[1]
     drift_std_error = np.zeros(drift_slope_size)
     drift_mean = np.zeros(drift_slope_size)
     summary_loop = np.arange(0, drift_slope_size - summary_window_size + 1, step_size)
     for i in range(summary_loop.size):
-        summary_window = np.roll(slope_storage[0, :], shift=- summary_loop[i])[:summary_window_size]
+        summary_window = np.roll(metric[0, :], shift=- summary_loop[i])[:summary_window_size]
         drift_std_error[i + summary_window_size - 1] = np.std(summary_window)
         drift_mean[i + summary_window_size - 1] = np.mean(summary_window)
     drift_std_error[:summary_window_size] = drift_std_error[summary_window_size]
     drift_std_error /= np.sqrt(summary_window_size)
     drift_mean[:summary_window_size] = drift_mean[summary_window_size]
-    slope_storage[0, :] = drift_mean
-    slope_storage[1, :] = drift_mean - sigma_multiples[0] * drift_std_error
-    slope_storage[2, :] = drift_mean + sigma_multiples[0] * drift_std_error
-    slope_storage[3, :] = drift_mean - sigma_multiples[1] * drift_std_error
-    slope_storage[4, :] = drift_mean + sigma_multiples[1] * drift_std_error
-    return slope_storage
+    metric[0, :] = drift_mean
+    metric[1, :] = drift_mean - sigma_multiples[0] * drift_std_error
+    metric[2, :] = drift_mean + sigma_multiples[0] * drift_std_error
+    metric[3, :] = drift_mean - sigma_multiples[1] * drift_std_error
+    metric[4, :] = drift_mean + sigma_multiples[1] * drift_std_error
+    return metric
