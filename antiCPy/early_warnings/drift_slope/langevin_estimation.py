@@ -999,12 +999,14 @@ class LangevinEstimation(RocketFastResilienceEstimation):
                         Both options give trustworthy results in the case of a first order polynomial drift. In case of the
                         third order polynomial drift they are too optimistic, i.e. narrow, since the error bounds
                         (``'error bound'``) or errors (``'uncorrelated Gaussian'``) are propagated without regard of
-                        correlations in the model parameters. Furthermore, the ``'uncorrelated Gaussian'`` option keeps
-                        the slightly asymmetric errors proposed by Wilks' theorem for the marginal parameter distributions.
-                        This small formal incorrectness is to maintain information about asymmetry in the estimates in a
-                        first guess. The ``cred_percentiles`` are fixed to ``cred_percentiles = numpy.array([5,1])`` to
-                        transform the half confidence bands under the assumption of Gaussian distributions by the factors
-                        1.96 and 2.5525, respectively. The propagated result is transformed back.
+                        correlations in the model parameters. This issue might be solvable by introducing an estimate of the
+                        covariance matrix in future, but is not planned for now. Furthermore, the ``'uncorrelated Gaussian'``
+                        option keeps the slightly asymmetric errors proposed by Wilks' theorem for the marginal parameter
+                        distributions. This small formal incorrectness is to maintain information about asymmetry in the
+                        estimates in a first Wilks' theorem guess. The ``cred_percentiles`` are fixed to
+                        ``cred_percentiles = numpy.array([5,1])`` to transform the half confidence bands under the assumption
+                        of Gaussian distributions by the factors 1.96 and 2.5525, respectively. The propagated result is
+                        transformed back.
 
                         .. hint::
                             The options ``'error bound'`` and ``'uncorrelated Gaussian'`` are only trustworthy for a linear
@@ -1257,16 +1259,17 @@ class LangevinEstimation(RocketFastResilienceEstimation):
         Helper function that determines the asymmetric marginal uncertainties of the ``MAP_theta`` via Wilks' theorem.
         The method yields trustable confidence bands for the drift slope :math:`\hat{\zeta}` for the first order polynomial
         of the Langevin equation. In case of the third order polynomial drift, the uncertainty of the drift lope :math:`\hat{\zeta}`
-        is determined via simple Gaussian propagation of uncertainties. Several assumptions make the confidence bands to
-        optimistic, i.e. narrow. The model parameters are assumed to be uncorrelated and Gaussian distributed. The model
+        is determined via simple Gaussian propagation of uncertainties. Several assumptions make the confidence bands too
+        optimistic, i.e. too narrow. The model parameters are assumed to be uncorrelated and Gaussian distributed. The model
         sample size of the MAP estimates is one. If this error propagation option is chosen for the third order drift polynomial,
         the confidence levels are fixed to cred_percentiles = numpy.array([5,1]) to transform the marginal confidence bands
         of the parameters into error via fixed transformation factors, i.e. 1.96 and 2.5525 for half-sided intervals.
         After error propagation the drift slope error is transformed back via the same factors. The normally slightly asymmetric error
         bounds are maintained and treated as if they would be half confidence intervals of a Gaussian. This formally not correct,
-        but maintains the information about asymmetry of the error bands in general for a first guess.
+        but maintains the information about asymmetry of the error bands of the Wilks' theorem approximation.
         Only in the rare case of high amounts of data per window, the confidence bands computed by this procedure might be
-        trustworthy in the case of a third order polynomial drift term.
+        trustworthy in the case of a third order polynomial drift term. This issue might be solvable by introducing an estimate
+        of the covariance matrix of the parameters in future.
 
         :param printbool: Determines whether a detailed output is printed or not.
         :type printbool: Boolean
@@ -1339,7 +1342,7 @@ class LangevinEstimation(RocketFastResilienceEstimation):
         as symmetric error bound. The deviations are propagated in terms of error bounds.
         The error bound of the fixed point estimate is assumed to be equal to a Gaussian :math:`3\sigma` -confidence
         band.
-        The estimation tends to be to optimistic, i.e. the uncertainty bounds are to narrow. The MAP estimation tends
+        The estimation tends to be too optimistic, i.e. the uncertainty bounds are too narrow. The MAP estimation tends
         to vary to strong for subsequent windows. It is only useful in the very rare case of very high amounts of
         stationary data per window. It is recommended to use the summary statistics uncertainty bands.
 
