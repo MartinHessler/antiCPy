@@ -26,7 +26,7 @@ for research purposes.
 
 .. hint::
     Note that for implementation purposes the parallel versions of the package make use of a global ``shared_memory_dict`` dictionary
-    and a global ``init_dict`` dictionary. Incomatibilities and error could occur if you manipulate or overwrite entries of those global
+    and a global ``init_dict`` dictionary. Incomatibilities and errors could occur if you manipulate or overwrite entries of those global
     dictionaries using the parallel methods of the package.
 
 You can find the `package on github <https://github.com/MartinHessler/antiCPy>`_.

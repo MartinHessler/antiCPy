@@ -16,6 +16,7 @@ This is the `antiCPy.early_warnings` package. It contains two resilience or earl
         former Fit classes. They involve a strong parallelization of the fitting procedures on multiple rolling windows at
         the `same` time. This improves the computational costs significantly and is the most up-to-date procedure.
 
+
 #. the `dominant_eigenvalue` which provides modules to
 
     #. optimize the method parameters in `param_opt`,
