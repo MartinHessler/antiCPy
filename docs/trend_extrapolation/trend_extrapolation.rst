@@ -24,8 +24,8 @@ avoids memory issues for a complicated CP segment fit with an arbitrary number o
    :maxdepth: 2
    :caption: Contents:
 
-    ./trend_extrapolation_API
-    batched_configs_helper/batched_configs_helper
+   trend_extrapolation_API
+   batched_configs_helper/batched_configs_helper
 
 
 
