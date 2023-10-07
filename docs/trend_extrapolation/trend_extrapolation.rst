@@ -1,5 +1,5 @@
 "trend_extrapolation" package
---------------------------------
+-----------------------------
 
 This is the `antiCPy.trend_extrapolation` package. It contains
 
@@ -20,11 +20,17 @@ The `BatchedCPSegmentFit` class solves these issues by parallel computation of b
 each worker only constructs a suitable subset of configurations. This leads to a major computation time improvement and
 avoids memory issues for a complicated CP segment fit with an arbitrary number of CPs.
 
+.. automodule:: antiCPy.trend_extrapolation.batched_cp_segment_fit
+    :members:
+    :show-inheritance:
+
+.. automodule:: antiCPy.trend_extrapolation.cp_segment_fit
+    :members:
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
-   trend_extrapolation_API
    batched_configs_helper/batched_configs_helper
 
 
