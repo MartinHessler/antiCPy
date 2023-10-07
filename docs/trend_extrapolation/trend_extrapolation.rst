@@ -27,6 +27,12 @@ avoids memory issues for a complicated CP segment fit with an arbitrary number o
 .. automodule:: antiCPy.trend_extrapolation.cp_segment_fit
     :members:
 
+
+"batched_configs_helper" subpackage
+-----------------------------------
+The helper package enables the construction of CP configuration batches to avoid memory errors. It implements
+methods which are required for the memory efficient version of the parallelized CP analysis.
+
 .. automodule:: antiCPy.trend_extrapolation.batched_configs_helper.create_configs_helper
     :members:
 
