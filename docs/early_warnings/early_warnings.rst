@@ -12,7 +12,7 @@ This is the `antiCPy.early_warnings` package. It contains two resilience or earl
 
     .. important::
         A fourth `RocketFastResilienceEstimation` is introduced. As superclass it works as a kind of wrapper of the former.
-        Basically, it adds the ``fast_resilience_scan(...)`` and ``fast_MAP_resilience_scan(___)`` functionalities to the
+        Basically, it adds the ``fast_resilience_scan(...)`` and ``fast_MAP_resilience_scan(...)`` functionalities to the
         former Fit classes. They involve a strong parallelization of the fitting procedures on multiple rolling windows at
         the `same` time. This improves the computational costs significantly and is the most up-to-date procedure.
 
