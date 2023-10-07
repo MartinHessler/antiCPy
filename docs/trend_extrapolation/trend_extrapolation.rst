@@ -27,13 +27,8 @@ avoids memory issues for a complicated CP segment fit with an arbitrary number o
 .. automodule:: antiCPy.trend_extrapolation.cp_segment_fit
     :members:
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
-
-   batched_configs_helper/batched_configs_helper
-
-
+.. automodule:: antiCPy.trend_extrapolation.batched_configs_helper.create_configs_helper
+    :members:
 
 
 Bibliography
