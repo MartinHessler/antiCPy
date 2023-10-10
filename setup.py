@@ -3,7 +3,7 @@ from os import path
 
 import antiCPy
 
-long_description_intro = ('The ``antiCPy`` package provides tools to monitor destabilization because of varying '
+long_description_intro = ('The `antiCPy` package provides tools to monitor destabilization because of varying '
                           'control parameters or the influence of noise. Based on early warning measures it provides '
                           'an extrapolation tool to estimate the time horizon in which a critical transition will '
                           'probably occur.\n')

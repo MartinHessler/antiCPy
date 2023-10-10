@@ -19,7 +19,7 @@ It provides an easy applicable and efficient toolbox
 Computationally expensive algorithms are implemented both, serially and strongly parallelized to minimize computation times. In case of
 the change point trend extrapolation it involves furthermore algorithms that allow for computing of complicated fits with high numbers
 of change points without memory errors.
-The package aims to provide easily applicable methods and guarantee high flexibility and  access to the derived interim results
+The package aims to provide easily applicable methods and guarantee high flexibility and access to the derived interim results
 for research purposes.
 
 Citing antiCPy
