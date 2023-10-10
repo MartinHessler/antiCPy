@@ -26,6 +26,7 @@ setup(
     description='A package that provides tools to estimate resilience and noise level of a system as well '
                 'as extrapolate possible transition times.',
     long_description=long_description,
+    long_description_content_type='text/markdown',
     platforms='any',
     keywords="time series analysis, critical transitions, leading indicators",
     classifiers = [
