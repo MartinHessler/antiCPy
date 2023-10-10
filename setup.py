@@ -6,10 +6,10 @@ import antiCPy
 long_description_intro = ('The `antiCPy` package provides tools to monitor destabilization because of varying '
                           'control parameters or the influence of noise. Based on early warning measures it provides '
                           'an extrapolation tool to estimate the time horizon in which a critical transition will '
-                          'probably occur.\n')
+                          'probably occur.')
 
 with open(path.join(path.abspath(path.dirname(__file__)), 'README.md'), encoding='utf-8') as f:
-    long_description = long_description_intro + f.read()
+    long_description = long_description_intro + '  ' + f.read()
 
 
 setup(
