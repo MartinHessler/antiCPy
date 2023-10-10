@@ -9,7 +9,7 @@ long_description_intro = ('The `antiCPy` package provides tools to monitor desta
                           'probably occur.')
 
 with open(path.join(path.abspath(path.dirname(__file__)), 'README.md'), encoding='utf-8') as f:
-    long_description = long_description_intro + '  ' + f.read()
+    long_description = long_description_intro + '<br />' + f.read()
 
 
 setup(
