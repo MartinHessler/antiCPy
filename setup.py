@@ -1,10 +1,16 @@
 from setuptools import setup, find_packages
-from setuptools.command.test import test as TestCommand
+from os import path
 
 import antiCPy
 
+long_description_intro = ('The ``antiCPy`` package provides tools to monitor destabilization because of varying '
+                          'control parameters or the influence of noise. Based on early warning measures it provides '
+                          'an extrapolation tool to estimate the time horizon in which a critical transition will '
+                          'probably occur.\n')
 
-long_description = 'The ``antiCPy`` package provides tools to monitor destabilization because of varying control parameters or the influence of noise. Based on early warning measures it provides an extrapolation tool to estimate the time horizon in which a critical transition will probably occur.'
+with open(path.join(path.abspath(path.dirname(__file__)), 'README.md'), encoding='utf-8') as f:
+    long_description = long_description_intro + f.read()
+
 
 setup(
     name='antiCPy',
@@ -13,10 +19,12 @@ setup(
     license='GPL',
     author='Martin Heßler',
     author_email='m_hess23@wwu.de',
-    install_requires=['numpy', 'matplotlib', 'scipy', 'emcee', 'ipyparallel', 'celerite', 'statsmodels', 'scikit-learn', 'sphinx', 'sphinx-rtd-theme'],
+    install_requires=['numpy', 'matplotlib', 'scipy', 'emcee', 'ipyparallel', 'celerite', 'statsmodels',
+                      'scikit-learn', 'sphinx', 'sphinx-rtd-theme'],
     scripts=[],
     packages=find_packages(),
-    description='A package that provides tools to estimate resilience and noise level of a system as well as extrapolate possible transition times.',
+    description='A package that provides tools to estimate resilience and noise level of a system as well '
+                'as extrapolate possible transition times.',
     long_description=long_description,
     platforms='any',
     keywords="time series analysis, critical transitions, leading indicators",
