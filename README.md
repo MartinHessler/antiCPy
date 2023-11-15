@@ -58,4 +58,4 @@ Up to now the package is accompanied by
 - the publication [Bayesian on-line anticipation of critical transitions](https://iopscience.iop.org/article/10.1088/1367-2630/ac46d4),
 
 - the preprint [Anticipation of Oligocene's climate heartbeat by simplified eigenvalue estimation](https://arxiv.org/abs/2309.14179),
-- the preprint [Estimating tipping risk factors in complex systems with application to power outage data](https://arxiv.org/abs/2212.06780).
+- the preprint [Quantifying Tipping Risks in Power Grids and beyond](https://arxiv.org/abs/2212.06780).
