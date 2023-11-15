@@ -583,7 +583,7 @@ class LangevinEstimation(RocketFastResilienceEstimation):
         windows, the time evolution of the drift slope estimate :math:`\hat{\zeta}` and the noise level
         estimate :math:`\hat{\sigma}` and its posterior probality density is shown in the animation.
         '''
-        global animation_count
+        global animation_count, CB_slope_I, CB_slope_II, CB_noise_I, CB_noise_II
         self.window_shift = i
         self.calc_driftslope_noise(slope_grid, noise_grid, nwalkers, nsteps, nburn, n_joint_samples, n_slope_samples,
                                    n_noise_samples, cred_percentiles, print_AC_tau, ignore_AC_error, thinning_by,
@@ -592,7 +592,6 @@ class LangevinEstimation(RocketFastResilienceEstimation):
                                    MCMC_parallelization_method, num_processes, num_chop_chains)
         self.slope_storage[:, animation_count] = self.drift_slope
         self.noise_level_storage[:, animation_count] = self.noise_level_estimate
-        axs[0, 0].collections.clear()
 
         if i == 0:
             path = vspan_window.get_xy()
@@ -608,8 +607,10 @@ class LangevinEstimation(RocketFastResilienceEstimation):
                                   self.slope_storage[0, :animation_count + 1])
         noise_line.set_data(self.time[self.window_size - 1 + self.loop_range[:animation_count + 1]],
                             self.noise_level_storage[0, :animation_count + 1])
-        axs[1, 0].collections.clear()
-        axs[1, 1].collections.clear()
+        CB_slope_I.remove()
+        CB_slope_II.remove()
+        CB_noise_I.remove()
+        CB_noise_II.remove()
         CB_slope_I = axs[1, 0].fill_between(self.time[self.window_size - 1 + self.loop_range[:animation_count + 1]],
                                             self.slope_storage[1, :animation_count + 1],
                                             self.slope_storage[2, :animation_count + 1], alpha=0.7, color='orange')
