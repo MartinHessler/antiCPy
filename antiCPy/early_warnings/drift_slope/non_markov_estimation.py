@@ -945,17 +945,17 @@ class NonMarkovEstimation(LangevinEstimation):
                                 MCMC_parallelization_method=None,
                                 num_processes=None, num_chop_chains=None, MCMC_AC_estimate = 'standard'):
         '''
-        Performs an automated window scan with defined `window_shift` over the whole time series. In each
+        Performs an automated window scan with defined ``window_shift`` over the whole time series. In each
         window the drift slope, noise level, X coupling strength and Ornstein-Uhlenbeck (OU) parameter estimates with
-        corresponding credibility bands are computed and saved in the `slope_storage`,`noise_level_storage`,`X_coupling_storage`
-        and `OU_param_storage`. It can also be used to create an
+        corresponding credibility bands are computed and saved in the ``slope_storage``, ``noise_level_storage``, ``X_coupling_storage``
+        and ``OU_param_storage``. It can also be used to create an
         animation of the sliding window approach plotting the time series, the moving window, and the time evolution of
         the drift slope estimates :math:`\hat{\zeta}`, the noise level :math:`\hat{\psi}` and the noise kernel density estimate.
         The start indices of the shifted windows are also saved in order to facilitate customized plots.
 
         :param window_size: Time window size.
         :type window_size: int
-        :param window_shift: The rolling time window is shifted about `window_shift` data points.
+        :param window_shift: The rolling time window is shifted about ``window_shift`` data points.
         :type window_shift: int
         :param slope_grid: Array on which the drift slope kernel density estimate is evaluated.
         :type slope_grid: One-dimensional numpy array of floats.

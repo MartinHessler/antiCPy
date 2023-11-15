@@ -3,7 +3,9 @@ import numpy as np
 def summary_statistics_helper(metric, summary_window_size=10, sigma_multiples=np.array([1, 3])):
     """
     Computes the mean of the drift slope :math:`\hat{\zeta}` and its standard error in a predefined summary
-    statistics window.
+    statistics window for the ``LangevinEstimation`` approaches with enabled summary statistics. In case of the
+    ``NonMarkovEstimation`` the summary statistics are computed for the drift slope :math:`\hat{\zeta}` and the
+    noise level estimates :math:`\hat{\psi}`.
 
     :param summary_window_size: If ``error_propagation = 'summary statistics'`` is chosen, the parameter defines
                     the number of drift slope estimates to use in a window summary statistic. The windows are shifted
