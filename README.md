@@ -9,7 +9,7 @@ early warning measures, leading indicators and time series analysis tools that f
 resilience in general as well as algorithms that might be helpful to estimate time horizons of future transitions or resilience changes.
 It provides an easy applicable and efficient toolbox
 
-1. to estimate the drift slope <img src="https://render.githubusercontent.com/render/math?math=\hat{\zeta}"> of a polynomial Langevin equation as an early warning signal via Markov Chain Monte Carlo
+1. to estimate the drift slope $\hat{\zeta}$ of a polynomial Langevin equation as an early warning signal via Markov Chain Monte Carlo
    (MCMC) sampling or maximum posterior (MAP) estimation,
 2. to estimate a non-Markovian two-time scale polynomial system via MCMC or MAP with the option of a priori activated time scale separation,
 3. to estimate the dominant eigenvalue by empiric dynamic modelling approaches like delay embedding and shadow manifolds combined with
