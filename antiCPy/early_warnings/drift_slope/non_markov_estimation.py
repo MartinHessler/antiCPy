@@ -579,7 +579,7 @@ class NonMarkovEstimation(LangevinEstimation):
         shared_memory_dict['slow_process'] = slow_process
         shared_memory_dict['print_time_scale_info'] = print_time_scale_info
 
-    def compute_posterior_samples(self, print_AC_tau, ignore_AC_error, thinning_by, print_progress,
+    def compute_posterior_samples(self, print_AC_tau, ignore_AC_error, thinning_by, print_progress, nburn,
                                   MCMC_parallelization_method=None, num_processes=None, num_chop_chains=None,
                                   MCMC_AC_estimate = 'standard'):
         '''
@@ -592,7 +592,7 @@ class NonMarkovEstimation(LangevinEstimation):
         sampled chains is printed.
         '''
         print('Calculate posterior samples')
-
+        self.nburn = nburn
         if MCMC_parallelization_method == None:
             sampler = emcee.EnsembleSampler(self.nwalkers, self.ndim, self.log_posterior)
             sampler.run_mcmc(self.starting_guesses, self.nsteps, progress=print_progress)
@@ -726,7 +726,7 @@ class NonMarkovEstimation(LangevinEstimation):
                                                          i, 3] * fixed_point_estimate ** 2))
                             Y_time_scale = self.starting_guesses[i, 5] ** 2
 
-    def calc_drift_slope_and_noise(self, slope_grid, noise_grid, OU_grid, X_coupling_grid,
+    def calc_drift_slope_and_noise(self, slope_grid, noise_grid, OU_grid, X_coupling_grid, nburn,
                                    n_joint_samples=50000, n_slope_samples=50000, n_noise_samples=50000,
                                    n_OU_param_samples=50000, n_X_coupling_samples=50000,
                                    cred_percentiles=np.array([16, 1]), print_AC_tau=False, print_time_scale_info = False,
@@ -753,14 +753,6 @@ class NonMarkovEstimation(LangevinEstimation):
         :type OU_grid: One-dimensional numpy array of floats.
         :param X_coupling_grid: Array on which the X coupling strength kernel density estimate is evaluated.
         :type X_coupling_grid: One-dimensional numpy array of floats.
-        :param nwalkers: Number of walkers that are initialized for the MCMC sampling via the package `emcee`.
-                        Default is 50.
-        :type nwalkers: int
-        :param nsteps: Length of the sampled MCMC chains. Default is 10000.
-        :type nsteps: int
-        :param nburn: Number of data points at the beginning of the Markov chains which are discarded
-                        in terms of a burn in period. Default is 200.
-        :type nburn: int
         :param n_joint_samples: Number of joint samples that are drawn from the estimated joint posterior
                         probability in order to calculate the drift slope estimate :math:`\zeta` and
                         corresponding credibility bands. Default is 50000.
@@ -850,7 +842,7 @@ class NonMarkovEstimation(LangevinEstimation):
                                                                   plot_detrending)
         self._prepare_data(printbool=print_details)
         self.declare_MAP_starting_guesses(print_time_scale_info=print_time_scale_info)
-        self.compute_posterior_samples(print_AC_tau=print_AC_tau, ignore_AC_error=ignore_AC_error,
+        self.compute_posterior_samples(print_AC_tau=print_AC_tau, ignore_AC_error=ignore_AC_error, nburn = nburn,
                                        thinning_by=thinning_by, print_progress=print_progress,
                                        MCMC_parallelization_method=MCMC_parallelization_method,
                                        num_processes=num_processes, num_chop_chains=num_chop_chains,
@@ -1110,8 +1102,7 @@ class NonMarkovEstimation(LangevinEstimation):
                 if print_progress:
                     print('Calculate resilience for window ' + str(i + 1) + ' of ' + str(self.loop_range.size) + '.')
                 self.window_shift = self.loop_range[i]
-                self.calc_drift_slope_and_noise(slope_grid, noise_grid, OU_grid, X_coupling_grid, nwalkers, nsteps,
-                                                nburn,
+                self.calc_drift_slope_and_noise(slope_grid, noise_grid, OU_grid, X_coupling_grid, nburn,
                                                 n_joint_samples, n_slope_samples, n_noise_samples,
                                                 n_OU_param_samples, n_X_coupling_samples,
                                                 cred_percentiles, print_AC_tau, print_time_scale_info,
@@ -1175,7 +1166,7 @@ class NonMarkovEstimation(LangevinEstimation):
             print('Calculate resilience for window ' + str(animation_count + 1) + ' of ' + str(
                 self.loop_range.size) + '.')
         self.window_shift = i
-        self.calc_drift_slope_and_noise(slope_grid, noise_grid, OU_grid, X_coupling_grid, nwalkers, nsteps, nburn,
+        self.calc_drift_slope_and_noise(slope_grid, noise_grid, OU_grid, X_coupling_grid, nburn,
                                         n_joint_samples, n_slope_samples, n_noise_samples,
                                         n_OU_param_samples, n_X_coupling_samples,
                                         cred_percentiles, print_AC_tau,

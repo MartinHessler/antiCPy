@@ -14,7 +14,7 @@ are explained in the following.
 import numpy as np
 import matplotlib.pylab as plt
 from sklearn.neighbors import NearestNeighbors
-from scipy.spatial.distance import euclidean
+
 
 def embedding_attractor_reconstruction(data, E, index_shift = 1):
 	"""
@@ -97,41 +97,42 @@ def false_NN(data, index_shift=1, start_order = 1, end_order = 15, NN_threshold 
 	
 	"""
 
-	def false_NN(data, time, index_shift, start_order=1, end_order=15, NN_threshold=30):
-
-		sigma_deviation = np.std(data)
-		false_NN = np.zeros(end_order + 1 - start_order)
-		j = 0
-		for m in range(start_order, end_order + 1):
-			state_space_m = embedding_attractor_reconstruction(data, time, m, index_shift)
-			state_space_m_plus_1 = embedding_attractor_reconstruction(data, time, m + 1, index_shift)
-			state_space_m_T = np.transpose(state_space_m)
-			state_space_m_plus_1_T = np.transpose(state_space_m_plus_1)
-			nbrs_model_m = NearestNeighbors(n_neighbors=2, algorithm='ball_tree').fit(state_space_m_T)
-			euclidean_dists_m, NN_indices_m = nbrs_model_m.kneighbors(state_space_m_T)
-			euclidean_dists_m_plus_1_of_NN_m = np.zeros(state_space_m_T[:, 0].size - index_shift)
-			heaviside_arg_false_NN = np.zeros(euclidean_dists_m_plus_1_of_NN_m.size)
-			for i in range(euclidean_dists_m_plus_1_of_NN_m.size):
-				euclidean_dists_m_plus_1_of_NN_m[i] = euclidean(
-					state_space_m_plus_1_T[NN_indices_m[i + index_shift, 1] - index_shift, :], state_space_m_plus_1_T[i,
-																							   :])  # Durch die Erhöhung der Einbettung verschiebt sich der usprüngliche Index der Dimension m um -1. Ansonsten soll für alle i Zustände der false_NN durchgeführt werden.
-			for i in range(heaviside_arg_false_NN.size):
-				if euclidean_dists_m[i + index_shift, 1] != 0:
-					heaviside_arg_false_NN[i] = (euclidean_dists_m_plus_1_of_NN_m[i] / euclidean_dists_m[
-						(i + index_shift), 1]) - NN_threshold
-				elif euclidean_dists_m_plus_1_of_NN_m[i] != 0:
-					heaviside_arg_false_NN[i] = 1
-				else:
-					heaviside_arg_false_NN[i] = 1  # Following Kantz, Schreiber
-			heaviside_arg_filter = (sigma_deviation / NN_threshold) - euclidean_dists_m[index_shift:, 1]
-			if np.sum(np.heaviside(heaviside_arg_filter, 0)) != 0:
-				false_NN[j] = np.sum(
-					np.heaviside(heaviside_arg_false_NN, 0) * np.heaviside(heaviside_arg_filter, 0)) / (
-								  np.sum(np.heaviside(heaviside_arg_filter, 0)))
+	sigma_deviation = np.std(data)
+	false_NN = np.zeros(end_order + 1 - start_order)
+	j = 0
+	for m in range(start_order, end_order + 1):
+		state_space_m = embedding_attractor_reconstruction(data, m, index_shift)
+		state_space_m_plus_1 = embedding_attractor_reconstruction(data, m + 1, index_shift)
+		state_space_m_T = np.transpose(state_space_m)
+		state_space_m_plus_1_T = np.transpose(state_space_m_plus_1)
+		nbrs_model_m = NearestNeighbors(n_neighbors=2, algorithm='ball_tree', p = np.inf).fit(state_space_m_T)
+		max_norm_dists_m, NN_indices_m = nbrs_model_m.kneighbors(state_space_m_T)
+		max_norm_dists_m_plus_1_of_NN_m = np.zeros(state_space_m_T[:, 0].size - index_shift)
+		heaviside_arg_false_NN = np.zeros(max_norm_dists_m_plus_1_of_NN_m.size)
+		for i in range(max_norm_dists_m_plus_1_of_NN_m.size):
+			if NN_indices_m[i,1]!=state_space_m.shape[1]-1:
+				max_norm_dists_m_plus_1_of_NN_m[i] = np.linalg.norm(
+					state_space_m_plus_1_T[NN_indices_m[i, 1], :] - state_space_m_plus_1_T[i,
+																							   :], ord = np.inf)
 			else:
-				false_NN[j] = 0
-			j += 1
-		return false_NN
+				pass
+		for i in range(heaviside_arg_false_NN.size):
+			if max_norm_dists_m[i, 1] != 0:
+				heaviside_arg_false_NN[i] = (max_norm_dists_m_plus_1_of_NN_m[i] / max_norm_dists_m[
+					(i), 1]) - NN_threshold
+			elif max_norm_dists_m_plus_1_of_NN_m[i] != 0:
+				heaviside_arg_false_NN[i] = 1
+			else:
+				heaviside_arg_false_NN[i] = 1  # Following Kantz, Schreiber
+		heaviside_arg_filter = (sigma_deviation / NN_threshold) - max_norm_dists_m[:-index_shift, 1]
+		if np.sum(np.heaviside(heaviside_arg_filter, 0)) != 0:
+			false_NN[j] = np.sum(
+				np.heaviside(heaviside_arg_false_NN, 0) * np.heaviside(heaviside_arg_filter, 0)) / (
+							  np.sum(np.heaviside(heaviside_arg_filter, 0)))
+		else:
+			false_NN[j] = 0
+		j += 1
+	return false_NN
 
 
 

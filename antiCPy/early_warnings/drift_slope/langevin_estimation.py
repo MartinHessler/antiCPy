@@ -403,7 +403,7 @@ class LangevinEstimation(RocketFastResilienceEstimation):
                 self.starting_guesses[self.starting_guesses[:, i] < self.prior_range[i, 1], i] = self.prior_range[
                                                                                                      i, 1] + 1
 
-    def compute_posterior_samples(self, print_AC_tau, ignore_AC_error, thinning_by, print_progress,
+    def compute_posterior_samples(self, print_AC_tau, ignore_AC_error, thinning_by, print_progress, nburn,
                                   MCMC_parallelization_method=None, num_processes=None, num_chop_chains=None):
         '''
         Compute the `theta_array` with :math:`nwalkers \cdot nsteps` Markov Chain Monte Carlo (MCMC) samples.
@@ -415,7 +415,7 @@ class LangevinEstimation(RocketFastResilienceEstimation):
         sampled chains is printed.
         '''
         print('Calculate posterior samples')
-
+        self.nburn = nburn
         if MCMC_parallelization_method == None:
             sampler = emcee.EnsembleSampler(self.nwalkers, self.ndim, self.log_posterior)
             sampler.run_mcmc(self.starting_guesses, self.nsteps, progress=print_progress)
@@ -585,7 +585,7 @@ class LangevinEstimation(RocketFastResilienceEstimation):
         '''
         global animation_count, CB_slope_I, CB_slope_II, CB_noise_I, CB_noise_II
         self.window_shift = i
-        self.calc_driftslope_noise(slope_grid, noise_grid, nwalkers, nsteps, nburn, n_joint_samples, n_slope_samples,
+        self.calc_driftslope_noise(slope_grid, noise_grid, n_joint_samples, n_slope_samples, nburn,
                                    n_noise_samples, cred_percentiles, print_AC_tau, ignore_AC_error, thinning_by,
                                    print_progress, detrending_per_window,gauss_filter_mode,gauss_filter_sigma,
                                    gauss_filter_order, gauss_filter_cval, gauss_filter_truncate, plot_detrending,
@@ -628,7 +628,7 @@ class LangevinEstimation(RocketFastResilienceEstimation):
         animation_count += 1
         return vspan_window, noise_pdf_line, drift_slope_line, noise_line, CB_slope_I, CB_slope_II, CB_noise_I, CB_noise_II
 
-    def calc_driftslope_noise(self, slope_grid, noise_grid, nwalkers=50, nsteps=10000, nburn=200,
+    def calc_driftslope_noise(self, slope_grid, noise_grid, nburn,
                               n_joint_samples=50000, n_slope_samples=50000, n_noise_samples=50000,
                               cred_percentiles=[16, 1], print_AC_tau=False,
                               ignore_AC_error=False, thinning_by=60, print_progress=False,
@@ -648,14 +648,6 @@ class LangevinEstimation(RocketFastResilienceEstimation):
         :type slope_grid: One-dimensional numpy array of floats
         :param noise_grid: Array on which the noise level kernel density estimate is evaluated.
         :type noise_grid: One-dimensional numpy array of floats
-        :param nwalkers: Number of walkers that are initialized for the MCMC sampling via the package ``emcee``.
-                        Default is 50.
-        :type nwalkers: int
-        :param nsteps: Length of the sampled MCMC chains. Default is 10000.
-        :type nsteps: int
-        :param nburn: Number of data points at the beginning of the Markov chains which are discarded
-                        in terms of a burn in period. Default is 200.
-        :type nburn: int
         :param n_joint_samples: Number of joint samples that are drawn from the estimated joint posterior
                         probability in order to calculate the drift slope estimate :math:`\zeta` and
                         corresponding credibility bands. Default is 50000.
@@ -717,7 +709,7 @@ class LangevinEstimation(RocketFastResilienceEstimation):
                                                                   plot_detrending)
         self.increments = self.data_window[1:] - self.data_window[:-1]
         self.declare_MAP_starting_guesses()
-        self.compute_posterior_samples(print_AC_tau=print_AC_tau, ignore_AC_error=ignore_AC_error,
+        self.compute_posterior_samples(print_AC_tau=print_AC_tau, ignore_AC_error=ignore_AC_error, nburn = nburn,
                                        thinning_by=thinning_by, print_progress=print_progress,
                                        MCMC_parallelization_method=None, num_processes=None, num_chop_chains=None)
         if self.drift_model == '3rd order polynomial':
@@ -921,7 +913,7 @@ class LangevinEstimation(RocketFastResilienceEstimation):
         if create_animation == False:
             for i in range(self.loop_range.size):
                 self.window_shift = self.loop_range[i]
-                self.calc_driftslope_noise(slope_grid, noise_grid, nwalkers, nsteps, nburn, n_joint_samples,
+                self.calc_driftslope_noise(slope_grid, noise_grid, n_joint_samples, nburn,
                                            n_slope_samples, n_noise_samples, cred_percentiles, print_AC_tau,
                                            ignore_AC_error, thinning_by, print_progress, detrending_per_window,
                                            gauss_filter_mode,gauss_filter_sigma, gauss_filter_order,
