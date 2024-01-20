@@ -648,6 +648,9 @@ class LangevinEstimation(RocketFastResilienceEstimation):
         :type slope_grid: One-dimensional numpy array of floats
         :param noise_grid: Array on which the noise level kernel density estimate is evaluated.
         :type noise_grid: One-dimensional numpy array of floats
+        :param nburn: Number of data points at the beginning of the Markov chains which are discarded in terms of
+                        a burn in period. Usually the defaul is 200, set by the `perform_resilience_scan` method.
+        :type nburn: int
         :param n_joint_samples: Number of joint samples that are drawn from the estimated joint posterior
                         probability in order to calculate the drift slope estimate :math:`\zeta` and
                         corresponding credibility bands. Default is 50000.

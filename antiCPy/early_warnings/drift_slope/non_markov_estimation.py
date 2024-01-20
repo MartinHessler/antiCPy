@@ -753,6 +753,9 @@ class NonMarkovEstimation(LangevinEstimation):
         :type OU_grid: One-dimensional numpy array of floats.
         :param X_coupling_grid: Array on which the X coupling strength kernel density estimate is evaluated.
         :type X_coupling_grid: One-dimensional numpy array of floats.
+        :param nburn: Number of data points at the beginning of the Markov chains which are discarded in terms of
+                        a burn in period. Usually the defaul is 200, set by the `perform_resilience_scan` method.
+        :type nburn: int
         :param n_joint_samples: Number of joint samples that are drawn from the estimated joint posterior
                         probability in order to calculate the drift slope estimate :math:`\zeta` and
                         corresponding credibility bands. Default is 50000.

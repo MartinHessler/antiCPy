@@ -22,7 +22,7 @@ of change points without memory errors.
 The package aims to provide easily applicable methods and guarantee high flexibility and access to the derived interim results
 for research purposes.
 
-![An illustration of the drift slope procedure.](https://github.com/MartinHessler/antiCPy/images/compound_BLE_illustration.jpg?raw=true)
+![An illustration of the drift slope procedure.](https://github.com/MartinHessler/antiCPy/blob/main/images/compound_BLE_illustration.jpg?raw=true)
 
 Citing antiCPy
 ==============
