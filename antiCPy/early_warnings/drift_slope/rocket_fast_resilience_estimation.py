@@ -27,6 +27,12 @@ class RocketFastResilienceEstimation():
         """
         The function's structure to use is almost equivalent to ``perform_resilience_scan`` of the ``LangevinEstimation`` and the
         ``NonMarkovEstimation`` class. It initializes a multiprocessing pool to calculate several rolling windows simultaneously.
+
+        :param window_shift: The parameter can differ from the basic integer definition known from the ``LangevinEstimation`` and the
+                            ``NonMarkovEstimation`` classes. If a one-dimensional numpy array is given instead, its entries are
+                            interpreted as specific ``window_shift`` for the parallel workers. In that case only these explicitly
+                            given shifts are used to determine the estimates of the corresponding windows.
+        :type window_shift: int or one-dimensional numpy array.
         """
         self.window_size = window_size
         if isinstance(window_shift, int):
