@@ -754,7 +754,7 @@ class NonMarkovEstimation(LangevinEstimation):
         :param X_coupling_grid: Array on which the X coupling strength kernel density estimate is evaluated.
         :type X_coupling_grid: One-dimensional numpy array of floats.
         :param nburn: Number of data points at the beginning of the Markov chains which are discarded in terms of
-                        a burn in period. Usually the defaul is 200, set by the `perform_resilience_scan` method.
+                        a burn in period. Usually the default is 200, set by the `perform_resilience_scan` method.
         :type nburn: int
         :param n_joint_samples: Number of joint samples that are drawn from the estimated joint posterior
                         probability in order to calculate the drift slope estimate :math:`\zeta` and
@@ -845,8 +845,8 @@ class NonMarkovEstimation(LangevinEstimation):
                                                                   plot_detrending)
         self._prepare_data(printbool=print_details)
         self.declare_MAP_starting_guesses(print_time_scale_info=print_time_scale_info)
-        self.compute_posterior_samples(print_AC_tau=print_AC_tau, ignore_AC_error=ignore_AC_error, nburn = nburn,
-                                       thinning_by=thinning_by, print_progress=print_progress,
+        self.compute_posterior_samples(print_AC_tau=print_AC_tau, ignore_AC_error=ignore_AC_error,
+                                       thinning_by=thinning_by, print_progress=print_progress, nburn = nburn,
                                        MCMC_parallelization_method=MCMC_parallelization_method,
                                        num_processes=num_processes, num_chop_chains=num_chop_chains,
                                        MCMC_AC_estimate=MCMC_AC_estimate)

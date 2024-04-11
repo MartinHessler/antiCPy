@@ -585,7 +585,7 @@ class LangevinEstimation(RocketFastResilienceEstimation):
         '''
         global animation_count, CB_slope_I, CB_slope_II, CB_noise_I, CB_noise_II
         self.window_shift = i
-        self.calc_driftslope_noise(slope_grid, noise_grid, n_joint_samples, n_slope_samples, nburn,
+        self.calc_driftslope_noise(slope_grid, noise_grid, nburn, n_joint_samples, n_slope_samples,
                                    n_noise_samples, cred_percentiles, print_AC_tau, ignore_AC_error, thinning_by,
                                    print_progress, detrending_per_window,gauss_filter_mode,gauss_filter_sigma,
                                    gauss_filter_order, gauss_filter_cval, gauss_filter_truncate, plot_detrending,
@@ -649,7 +649,7 @@ class LangevinEstimation(RocketFastResilienceEstimation):
         :param noise_grid: Array on which the noise level kernel density estimate is evaluated.
         :type noise_grid: One-dimensional numpy array of floats
         :param nburn: Number of data points at the beginning of the Markov chains which are discarded in terms of
-                        a burn in period. Usually the defaul is 200, set by the `perform_resilience_scan` method.
+                        a burn in period. Usually the default is 200, set by the `perform_resilience_scan` method.
         :type nburn: int
         :param n_joint_samples: Number of joint samples that are drawn from the estimated joint posterior
                         probability in order to calculate the drift slope estimate :math:`\zeta` and
@@ -712,8 +712,8 @@ class LangevinEstimation(RocketFastResilienceEstimation):
                                                                   plot_detrending)
         self.increments = self.data_window[1:] - self.data_window[:-1]
         self.declare_MAP_starting_guesses()
-        self.compute_posterior_samples(print_AC_tau=print_AC_tau, ignore_AC_error=ignore_AC_error, nburn = nburn,
-                                       thinning_by=thinning_by, print_progress=print_progress,
+        self.compute_posterior_samples(print_AC_tau=print_AC_tau, ignore_AC_error=ignore_AC_error,
+                                       thinning_by=thinning_by, print_progress=print_progress, nburn = nburn,
                                        MCMC_parallelization_method=None, num_processes=None, num_chop_chains=None)
         if self.drift_model == '3rd order polynomial':
             self.joint_kernel_density_obj = cpy.gaussian_kde(self.theta_array, bw_method='silverman')
@@ -916,7 +916,7 @@ class LangevinEstimation(RocketFastResilienceEstimation):
         if create_animation == False:
             for i in range(self.loop_range.size):
                 self.window_shift = self.loop_range[i]
-                self.calc_driftslope_noise(slope_grid, noise_grid, n_joint_samples, nburn,
+                self.calc_driftslope_noise(slope_grid, noise_grid, nburn, n_joint_samples,
                                            n_slope_samples, n_noise_samples, cred_percentiles, print_AC_tau,
                                            ignore_AC_error, thinning_by, print_progress, detrending_per_window,
                                            gauss_filter_mode,gauss_filter_sigma, gauss_filter_order,
@@ -1001,7 +1001,7 @@ class LangevinEstimation(RocketFastResilienceEstimation):
                         distributions. This small formal incorrectness is to maintain information about asymmetry in the
                         estimates in a first Wilks' theorem guess. The ``cred_percentiles`` are fixed to
                         ``cred_percentiles = numpy.array([5,1])`` to transform the half confidence bands under the assumption
-                        of Gaussian distributions by the factors 1.96 and 2.5525, respectively. The propagated result is
+                        of Gaussian distributions by the factors 1.96 and 2.575, respectively. The propagated result is
                         transformed back.
 
                         .. hint::
@@ -1040,7 +1040,7 @@ class LangevinEstimation(RocketFastResilienceEstimation):
                         the number of drift slope estimates to use in a window summary statistic. The windows are shifted
                         by one.
         :type summary_window_size: int
-        :param sigma_multiples: The array hast two entries. If ``error_propagation = 'summary statistics'`` is chosen,
+        :param sigma_multiples: The array has two entries. If ``error_propagation = 'summary statistics'`` is chosen,
                         the entries define the drift slope standard error multiples which are used to calculate the
                         uncertainty bands.
         :type sigma_multiples: One dimensional numpy array of float .
@@ -1259,7 +1259,7 @@ class LangevinEstimation(RocketFastResilienceEstimation):
         optimistic, i.e. too narrow. The model parameters are assumed to be uncorrelated and Gaussian distributed. The model
         sample size of the MAP estimates is one. If this error propagation option is chosen for the third order drift polynomial,
         the confidence levels are fixed to cred_percentiles = numpy.array([5,1]) to transform the marginal confidence bands
-        of the parameters into error via fixed transformation factors, i.e. 1.96 and 2.5525 for half-sided intervals.
+        of the parameters into error via fixed transformation factors, i.e. 1.96 and 2.575 for half-sided intervals.
         After error propagation the drift slope error is transformed back via the same factors. The normally slightly asymmetric error
         bounds are maintained and treated as if they would be half confidence intervals of a Gaussian. This formally not correct,
         but maintains the information about asymmetry of the error bands of the Wilks' theorem approximation.
@@ -1278,15 +1278,12 @@ class LangevinEstimation(RocketFastResilienceEstimation):
         self.MAP_slope_errors = np.zeros(4)
         theta_error_sigLevel1 = np.zeros((self.ndim, 2))
         theta_error_sigLevel2 = np.zeros((self.ndim, 2))
-        theta_error_sigLevel1[:, 0] = self.MAP_CI[:, 0]
-        theta_error_sigLevel1[:, 1] = self.MAP_CI[:, 1]
-        theta_error_sigLevel1[:, 0] = self.MAP_CI[:, 0]
-        theta_error_sigLevel1[:, 1] = self.MAP_CI[:, 1]
 
-        theta_error_sigLevel2[:, 0] = self.MAP_CI[:, 2]
-        theta_error_sigLevel2[:, 1] = self.MAP_CI[:, 3]
-        theta_error_sigLevel2[:, 0] = self.MAP_CI[:, 2]/2.5525
-        theta_error_sigLevel2[:, 1] = self.MAP_CI[:, 3]/2.5525
+        theta_error_sigLevel1[:, 0] = self.MAP_CI[:, 0]/1.96
+        theta_error_sigLevel1[:, 1] = self.MAP_CI[:, 1]/1.96
+
+        theta_error_sigLevel2[:, 0] = self.MAP_CI[:, 2]/2.575
+        theta_error_sigLevel2[:, 1] = self.MAP_CI[:, 3]/2.575
 
         # compute worst case lower bound
         if self.drift_model == '3rd order polynomial':
@@ -1296,25 +1293,25 @@ class LangevinEstimation(RocketFastResilienceEstimation):
             param1_error = 1 * theta_error_sigLevel1[1, 0]
             param2_error = 2 * self.fixed_point_estimate * theta_error_sigLevel1[2, 0]
             param3_error = 3 * self.fixed_point_estimate ** 2 * theta_error_sigLevel1[3, 0]
-            self.MAP_slope_errors[0] = np.sqrt(param1_error**2 + param2_error**2 + param3_error**2 + X_error**2)
+            self.MAP_slope_errors[0] = np.sqrt(param1_error**2 + param2_error**2 + param3_error**2 + X_error**2) * 1.96
 
             # compute worst case upper bound
             param1_error = 1 * theta_error_sigLevel1[1, 1]
             param2_error = 2 * self.fixed_point_estimate * theta_error_sigLevel1[2, 1]
             param3_error = 3 * self.fixed_point_estimate ** 2 * theta_error_sigLevel1[3, 1]
-            self.MAP_slope_errors[1] = np.sqrt(param1_error ** 2 + param2_error ** 2 + param3_error ** 2 + X_error**2)
+            self.MAP_slope_errors[1] = np.sqrt(param1_error ** 2 + param2_error ** 2 + param3_error ** 2 + X_error**2) * 1.96
 
             # compute worst case lower bound
             param1_error = 1 * theta_error_sigLevel2[1, 0]
             param2_error = 2 * self.fixed_point_estimate * theta_error_sigLevel2[2, 0]
             param3_error = 3 * self.fixed_point_estimate ** 2 * theta_error_sigLevel2[3, 0]
-            self.MAP_slope_errors[2] = np.sqrt(param1_error ** 2 + param2_error ** 2 + param3_error ** 2 + X_error**2) * 2.5525
+            self.MAP_slope_errors[2] = np.sqrt(param1_error ** 2 + param2_error ** 2 + param3_error ** 2 + X_error**2) * 2.575
 
             # compute worst case upper bound
             param1_error = 1 * theta_error_sigLevel2[1, 1]
             param2_error = 2 * self.fixed_point_estimate * theta_error_sigLevel2[2, 1]
             param3_error = 3 * self.fixed_point_estimate ** 2 * theta_error_sigLevel2[3, 1]
-            self.MAP_slope_errors[3] = np.sqrt(param1_error ** 2 + param2_error ** 2 + param3_error ** 2 + X_error**2) * 2.5525
+            self.MAP_slope_errors[3] = np.sqrt(param1_error ** 2 + param2_error ** 2 + param3_error ** 2 + X_error**2) * 2.575
 
         elif self.drift_model == 'linear model':
             self.MAP_slope_errors = np.array([theta_error_sigLevel1[1, 0], theta_error_sigLevel1[1, 1],
@@ -1351,7 +1348,7 @@ class LangevinEstimation(RocketFastResilienceEstimation):
             print('Compute symmetric slope error margins.')
             print('______________________________________________')
         self.fixed_point_estimate = np.mean(self.data_window)
-        data_window_error = np.sqrt(1. / (self.data_window.size) * np.var(self.data_window)) * 2.5525
+        data_window_error = np.sqrt(1. / (self.data_window.size) * np.var(self.data_window)) * 2.575
         X_error_bound = abs(2 * self.MAP_theta[2, 0] + 6 * self.fixed_point_estimate *
                    self.MAP_theta[3, 0]) * data_window_error
         self.MAP_slope_margin = np.zeros(2)

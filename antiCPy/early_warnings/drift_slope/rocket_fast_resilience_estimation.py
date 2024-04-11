@@ -29,8 +29,11 @@ class RocketFastResilienceEstimation():
         ``NonMarkovEstimation`` class. It initializes a multiprocessing pool to calculate several rolling windows simultaneously.
         """
         self.window_size = window_size
-        self.window_shift = window_shift
-        self.loop_range = np.arange(0, self.data_size - self.window_size, self.window_shift, dtype=int)
+        if isinstance(window_shift, int):
+            self.window_shift = window_shift
+            self.loop_range = np.arange(0, self.data_size - self.window_size, self.window_shift, dtype=int)
+        elif window_shift.size != 1:
+            self.loop_range = np.array(window_shift)
         loop_range_size = self.loop_range.size
         self.slope_storage = mp.RawArray('d', 5 * loop_range_size)
         self.noise_level_storage = mp.RawArray('d', 5 * loop_range_size)
