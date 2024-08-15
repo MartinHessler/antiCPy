@@ -929,9 +929,9 @@ class NonMarkovEstimation(LangevinEstimation):
                                 n_X_coupling_samples=50000, cred_percentiles=np.array([16, 1]),
                                 print_AC_tau=False, ignore_AC_error=False, thinning_by=60,
                                 print_progress=False, print_details=False, print_time_scale_info = False,
-                                slope_save_name='default_save_slopes',
-                                noise_level_save_name='default_save_noise', save=True,
-                                create_animation=False, ani_save_name='default_animation_name',
+                                slope_save_name='default_save_slopes', noise_level_save_name='default_save_noise',
+                                OU_param_save_name='default_save_OUparam', X_coupling_save_name='default_save_Xcoupling',
+                                save=True, create_animation=False, ani_save_name='default_animation_name',
                                 animation_title='', mark_critical_point=None,
                                 mark_noise_level=None, detrending_per_window = None,
                                 gauss_filter_mode='reflect',
@@ -1014,6 +1014,12 @@ class NonMarkovEstimation(LangevinEstimation):
         :param  noise_level_save_name: Name of the file in which the `noise_level_storage` array will
                         be saved. Default is `default_save_noise`.
         :type noise_level_save_name: string
+        :param OU_param_save_name: Name of the file in which the `OU_param_storage` array will be saved. Default is
+                        `default_save_OUparam`.
+        :type OU_param_save_name: string
+        :param X_coupling_save_name: Name of the file in which the `X_coupling_storage` array will be saved. Default is
+                        `default_save_Xcoupling`.
+        :type X_coupling_save_name: string
         :param save: If `True` the `slope_storage` and the `noise_level_storage` arrays are saved in the
                         end of the scan in an .npy file. Default is `True`.
         :type save: Boolean
@@ -1153,6 +1159,8 @@ class NonMarkovEstimation(LangevinEstimation):
         if save:
             np.save(slope_save_name + '.npy', self.slope_storage)
             np.save(noise_level_save_name + '.npy', self.noise_level_storage)
+            np.save(OU_param_save_name + '.npy', self.OU_param_storage)
+            np.save(X_coupling_save_name + '.npy', self.X_coupling_storage)
 
     def animation(self, i, slope_grid, noise_grid, OU_grid, X_coupling_grid, nwalkers, nsteps, nburn, n_joint_samples,
                   n_slope_samples, n_noise_samples, n_OU_param_samples, n_X_coupling_samples, cred_percentiles,
@@ -1218,9 +1226,9 @@ class NonMarkovEstimation(LangevinEstimation):
                                     cred_percentiles=np.array([16, 1]), error_propagation='summary statistics',
                                     summary_window_size = 10, sigma_multiples = np.array([1,3]),
                                     print_progress=True, print_details=False,
-                                    slope_save_name='default_save_slopes',
-                                    noise_level_save_name='default_save_noise', save=True,
-                                    create_plot=False, ani_save_name='default_animation_name',
+                                    slope_save_name='default_save_slopes', noise_level_save_name='default_save_noise',
+                                    OU_param_save_name='default_save_OUparam', X_coupling_save_name='default_save_Xcoupling',
+                                    save=True, create_plot=False, ani_save_name='default_animation_name',
                                     animation_title='', mark_critical_point=None,
                                     mark_noise_level=None, print_time_scale_info = False, print_hint = True, fastMAPflag = False):
         """
@@ -1259,10 +1267,14 @@ class NonMarkovEstimation(LangevinEstimation):
 
                         .. hint::
                             The options ``'error bound'`` and ``'uncorrelated Gaussian'`` are only trustworthy for a linear
-                            drift term. They might also be correct for a third order polynomial drift in the case ofvery
-                            high amounts of data per window. Otherwise, the default ``'summary statistics'`` should be used,
-                            unless the window shift is very high. In that case it might introduce a too strong delay due
-                            to the averaging procedure.
+                            drift term. They might also be correct for a third order polynomial drift in the case of a sufficient
+                            amount of data per window and negligible parameter correlations. Otherwise, the default
+                            ``'summary statistics'`` should be used, unless the window shift is very high. In that case
+                            it might introduce a too strong delay due to the averaging procedure. Furthermore, note that the
+                            previously defined ``window_size`` denotes the size of the subwindows for the ``'summary statistics'``
+                            approach. Therefore, it should be ensured that the ``window_shift`` is chosen in a way that avoids
+                            notable overlapping rolling windows which would lead to correlated data and to biased
+                            ``'summary statistics'``.
 
         :type error_propagation: str
         :param print_progress: If `True` the progress of the MAP estimation per window is shown.
@@ -1281,6 +1293,14 @@ class NonMarkovEstimation(LangevinEstimation):
                         be saved. Default is `default_save_noise`.
 
         :type noise_level_save_name: string
+        :param OU_param_save_name: Name of the file in which the `OU_param_storage` array will be saved. Default is
+                        `default_save_OUparam`.
+
+        :type OU_param_save_name: string
+        :param X_coupling_save_name: Name of the file in which the `X_coupling_storage` array will be saved. Default is
+                        `default_save_Xcoupling`.
+
+        :type X_coupling_save_name: string
         :param save: If `True` the `slope_storage` and the `noise_level_storage` arrays are saved in the
                         end of the scan in an .npy file. Default is `True`.
 
@@ -1335,10 +1355,12 @@ class NonMarkovEstimation(LangevinEstimation):
             self.slope_storage = summary_statistics_helper(self.slope_storage, summary_window_size, sigma_multiples)
             self.noise_level_storage = summary_statistics_helper(self.noise_level_storage, summary_window_size, sigma_multiples)
         elif create_plot:
-            print('The MAP plot feature is not implemented yet.')
+            print('The MAP plot feature is not implemented.')
         if save:
             np.save(slope_save_name, self.slope_storage)
             np.save(noise_level_save_name, self.noise_level_storage)
+            np.save(OU_param_save_name + '.npy', self.OU_param_storage)
+            np.save(X_coupling_save_name + '.npy', self.X_coupling_storage)
 
     def _calc_MAP_resilience(self, cred_percentiles, error_propagation, print_details, print_time_scale_info):
         """
