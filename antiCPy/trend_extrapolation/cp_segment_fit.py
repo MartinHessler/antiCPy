@@ -498,7 +498,7 @@ class CPSegmentFit:
 
     @staticmethod
     def init_parallel_CP_pdf(MC_configs, num_cps, cp_prob_grid, prob_cp, sum_cp_probs_connector, memory_management,
-                             sum_cp_probs_count_connector, print_progress, completion_control_connector, multiprocessing,
+                             print_progress, completion_control_connector, multiprocessing,
                              num_MC_samples, data):
         global init_dict, shared_memory_dict
         init_dict = {}
@@ -516,7 +516,6 @@ class CPSegmentFit:
         init_dict['print_progress'] = print_progress
         shared_memory_dict = {}
         shared_memory_dict['sum_cp_probs_connector'] = sum_cp_probs_connector
-        shared_memory_dict['sum_cp_probs_count_connector'] = sum_cp_probs_count_connector
         shared_memory_dict['completion_control_connector'] = completion_control_connector
 
     @staticmethod
@@ -528,8 +527,6 @@ class CPSegmentFit:
             print('CP configuration ' + str(m + 1) + '/' + str(init_dict['num_MC_samples']))
         sum_cp_probs = np.frombuffer(shared_memory_dict['sum_cp_probs_connector'].get_obj()).reshape(
             (init_dict['num_cps'], init_dict['cp_prob_grid'].size))
-        sum_cp_probs_count = np.frombuffer(shared_memory_dict['sum_cp_probs_count_connector'].get_obj()).reshape(
-            (init_dict['num_cps'], init_dict['cp_prob_grid'].size))
         completion_control = shared_memory_dict['completion_control_connector']
         if not init_dict['memory_management']:
             if init_dict['multiprocessing']:
@@ -537,13 +534,11 @@ class CPSegmentFit:
                     completion_control.value += 1
                     for j in range(0, init_dict['num_cps']):
                         sum_cp_probs[j, init_dict['cp_prob_grid'] == init_dict['MC_configs'][m, j + 1]] += init_dict['prob_cp'][m]
-                        sum_cp_probs_count[j, init_dict['cp_prob_grid'] == init_dict['MC_configs'][m, j + 1]] += 1
             else:
                 completion_control.value += 1
                 for j in range(0, init_dict['num_cps']):
                     sum_cp_probs[j, init_dict['cp_prob_grid'] == init_dict['MC_configs'][m, j + 1]] += \
                     init_dict['prob_cp'][m]
-                    sum_cp_probs_count[j, init_dict['cp_prob_grid'] == init_dict['MC_configs'][m, j + 1]] += 1
         elif init_dict['memory_management']:
             current_MC_config = np.array(
                 construct_start_combinations_helper(init_dict['data'], init_dict['total_data'], init_dict['num_cps'],
@@ -553,12 +548,10 @@ class CPSegmentFit:
                     completion_control.value += 1
                     for j in range(0, init_dict['num_cps']):
                         sum_cp_probs[j, init_dict['cp_prob_grid'] == current_MC_config[j]] += init_dict['prob_cp'][m]
-                        sum_cp_probs_count[j, init_dict['cp_prob_grid'] == current_MC_config[j]] += 1
             else:
                 completion_control.value += 1
                 for j in range(0, init_dict['num_cps']):
                     sum_cp_probs[j, init_dict['cp_prob_grid'] == current_MC_config[j]] += init_dict['prob_cp'][m]
-                    sum_cp_probs_count[j, init_dict['cp_prob_grid'] == current_MC_config[j]] += 1
 
 
 
@@ -581,7 +574,6 @@ class CPSegmentFit:
         :type print_progress: bool
         """
         sum_cp_probs = mp.Array('d', self.n_cp * self.N)
-        sum_cp_probs_count = mp.Array('d', self.n_cp * self.N)
         if not hasattr(self, 'completion_control'):
             self.completion_control = mp.Value('i', 0)
         if not hasattr(self, 'efficient_memory_management'):
@@ -608,7 +600,7 @@ class CPSegmentFit:
             with mp.Manager() as manager:
                 lock = manager.Lock()
                 with mp.Pool(processes=processes, initializer=self.init_parallel_CP_pdf, initargs=(
-                self.MC_cp_configurations, self.n_cp, self.x, self.prob_cp, sum_cp_probs, self.efficient_memory_management, sum_cp_probs_count,
+                self.MC_cp_configurations, self.n_cp, self.x, self.prob_cp, sum_cp_probs, self.efficient_memory_management,
                 print_progress, self.completion_control, multiprocessing, self.n_MC_samples, self.x[1:-1])) as pool:
                     pool.starmap_async(self.batched_compute_CP_pdfs, [(m, lock) for m in range(self.n_MC_samples)], error_callback = custom_error_callback, chunksize = chunksize)
                     pool.close()
@@ -616,22 +608,15 @@ class CPSegmentFit:
             print(str(self.completion_control.value) + ' tasks of ' + str(self.n_MC_samples) + ' are executed.')
         else:
             self.init_parallel_CP_pdf(self.MC_cp_configurations, self.n_cp, self.x, self.prob_cp, sum_cp_probs,
-                                      self.efficient_memory_management, sum_cp_probs_count, print_progress, self.completion_control,
+                                      self.efficient_memory_management, print_progress, self.completion_control,
                                       multiprocessing, self.n_MC_samples, self.x[1:-1])
             for m in range(self.n_MC_samples):
                 lock = None
                 self.batched_compute_CP_pdfs(m, lock)
 
         sum_cp_probs = np.array(sum_cp_probs).reshape((self.n_cp, self.N))
-        sum_cp_probs_count = np.array(sum_cp_probs_count).reshape((self.n_cp, self.N))
 
-        self.CP_pdfs = np.zeros((self.n_cp, self.N))
-        for i in range(self.N):
-            if print_progress:
-                print('Compute average cp probability at grid position ' + str(i + 1) + '/' + str(self.N) + '.')
-            for j in range(0, self.n_cp):
-                if sum_cp_probs_count[j, i] != 0:
-                    self.CP_pdfs[j, i] = sum_cp_probs[j, i] / sum_cp_probs_count[j, i]
+        self.CP_pdfs = sum_cp_probs
 
     def compute_expected_values_CP_positions(self):
         """
