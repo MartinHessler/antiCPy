@@ -72,13 +72,13 @@ def extrapolate_batch_combinations(data, batch_size, tuple_num, pick_out_combina
     return batch_configurations
 
 
-def batched_configs(batch_num, batchsize, x, prediction_horizon, n_cp, exact_sum_control=False,
+def batched_configs(batch_num, batch_size, x, prediction_horizon, n_cp, exact_sum_control=False,
                     config_output=False):
     """
     Internal helper method to initialize the CP configuration of a given batch.
     """
     if exact_sum_control:
-        possible_configs = extrapolate_batch_combinations(x[1:-1], batchsize, n_cp, batch_num * batchsize + 1)
+        possible_configs = extrapolate_batch_combinations(x[1:-1], batch_size, n_cp, batch_num * batch_size + 1)
         if config_output:
             print('Possible configs: ', possible_configs)
             print('Possible configs shape: ', possible_configs.shape)
@@ -94,10 +94,10 @@ def batched_configs(batch_num, batchsize, x, prediction_horizon, n_cp, exact_sum
             print('MC_cp_configurations shape: ', composition_dummy.shape)
         MC_cp_configurations = composition_dummy
     elif exact_sum_control == False:
-        support_x = np.zeros((batchsize, n_cp + 2))
-        support_x[:, 1:] = - np.log(1 - np.random.uniform(low=0.0001, high=1.0, size=(batchsize, n_cp + 1)))
-        support_y = np.zeros((batchsize, n_cp + 2))
-        z_cp_config = np.zeros((batchsize, n_cp + 2))
+        support_x = np.zeros((batch_size, n_cp + 2))
+        support_x[:, 1:] = - np.log(1 - np.random.uniform(low=0.0001, high=1.0, size=(batch_size, n_cp + 1)))
+        support_y = np.zeros((batch_size, n_cp + 2))
+        z_cp_config = np.zeros((batch_size, n_cp + 2))
         for k in range(n_cp + 2):
             support_y[:, k] = support_x[:, k] / (np.sum(support_x, axis=1))
         for k in range(n_cp + 2):
