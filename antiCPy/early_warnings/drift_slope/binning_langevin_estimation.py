@@ -10,7 +10,9 @@ class BinningLangevinEstimation(LangevinEstimation):
 	Needed attributes and (overloaded) methods are provided.
 
 	.. hint::
-		The fitting procedure is faster than the MAP estimation if the windows contain a certain amount of data.
+		The fitting procedure is faster than the MAP estimation if the windows contain a certain amount of data. In any case,
+		it is important to define a suitable number of bins to avoid biased estimates. At the same time, it should be chosen
+		as small as possible to reduce computation times.
 
 	:param _bin_centers: Attribute that contains the bin centers of the time series.
 	:type _bin_centers: One-dimensional numpy array of float
