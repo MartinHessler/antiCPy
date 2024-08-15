@@ -714,7 +714,8 @@ class LangevinEstimation(RocketFastResilienceEstimation):
         self.declare_MAP_starting_guesses()
         self.compute_posterior_samples(print_AC_tau=print_AC_tau, ignore_AC_error=ignore_AC_error,
                                        thinning_by=thinning_by, print_progress=print_progress, nburn = nburn,
-                                       MCMC_parallelization_method=None, num_processes=None, num_chop_chains=None)
+                                       MCMC_parallelization_method=MCMC_parallelization_method, num_processes=num_processes,
+                                       num_chop_chains=num_chop_chains)
         if self.drift_model == '3rd order polynomial':
             self.joint_kernel_density_obj = cpy.gaussian_kde(self.theta_array, bw_method='silverman')
             self.joint_samples = self.joint_kernel_density_obj.resample(size=n_joint_samples)
