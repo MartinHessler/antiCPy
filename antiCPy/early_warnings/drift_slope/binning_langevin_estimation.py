@@ -187,7 +187,6 @@ class BinningLangevinEstimation(LangevinEstimation):
 				zero_members = True
 			if printbool:
 				print('bin_indizes size: ', bin_indizes.size)
-			print(data_window.size - 1)
 			if np.any(bin_indizes == data_window.size - 1):
 				bin_indizes = np.delete(bin_indizes, bin_indizes == data_window.size -1)
 			incr = data_window[bin_indizes+1] - data_window[bin_indizes]
