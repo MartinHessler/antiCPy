@@ -38,7 +38,7 @@ class BatchedCPSegmentFit(CPSegmentFit):
 
         self.efficient_memory_management = efficient_memory_management
         if efficient_memory_management:
-            self.prob_cp = mp.RawArray('d', num_MC_cp_samples)
+            self.prob_cp = mp.RawArray('d', self.n_MC_samples)
             self.cp_prior_pdf = 1. / (self.n_MC_samples)
         self.batched_D_factor = None
         self.batched_DELTA_D2_factor = None
