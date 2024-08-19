@@ -573,6 +573,12 @@ class CPSegmentFit:
 
         :param print_progress: If ``True``, the already computed batches to total batches are shown. Default is ``True```.
         :type print_progress: bool
+
+        :param queue_management: If ``True``, the computations are performed in batches of configurations. After each batch,
+        the pool of workers is closed and a new one is initialized. This avoids excessive memory allocation by preparing all
+        jobs at once in a multiprocessing pool. It is slower than the latter, but saves memory. If memory is not a problem,
+        stick to the default ``queue_management=False``.
+        :type queue_management: bool
         """
         sum_cp_probs = mp.Array('d', self.n_cp * self.N)
         if not hasattr(self, 'completion_control'):
