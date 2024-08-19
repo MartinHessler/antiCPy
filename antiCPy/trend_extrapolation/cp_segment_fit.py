@@ -555,7 +555,8 @@ class CPSegmentFit:
 
 
 
-    def compute_CP_pdfs(self, multiprocessing=True, num_processes='half', print_CPU_count=False, print_progress=True):
+    def compute_CP_pdfs(self, multiprocessing=True, num_processes='half', print_CPU_count=False, print_progress=True,
+                        queue_management = False):
         """
         Computes the marginal ordinal CP pdfs and stores them in the attribute ``self.CP_pdfs``.
 
@@ -599,12 +600,25 @@ class CPSegmentFit:
                 chunksize += 1
             with mp.Manager() as manager:
                 lock = manager.Lock()
-                with mp.Pool(processes=processes, initializer=self.init_parallel_CP_pdf, initargs=(
-                self.MC_cp_configurations, self.n_cp, self.x, self.prob_cp, sum_cp_probs, self.efficient_memory_management,
-                print_progress, self.completion_control, multiprocessing, self.n_MC_samples, self.x[1:-1])) as pool:
-                    pool.starmap_async(self.batched_compute_CP_pdfs, [(m, lock) for m in range(self.n_MC_samples)], error_callback = custom_error_callback, chunksize = chunksize)
-                    pool.close()
-                    pool.join()
+                if queue_management:
+                    for k in range(self.total_batches):
+                        with mp.Pool(processes=processes, initializer=self.init_parallel_CP_pdf, initargs=(
+                        self.MC_cp_configurations, self.n_cp, self.x, self.prob_cp, sum_cp_probs, self.efficient_memory_management,
+                        print_progress, self.completion_control, multiprocessing, self.n_MC_samples, self.x[1:-1])) as pool:
+                            pool.starmap_async(self.batched_compute_CP_pdfs, [(m, lock) for m in np.arange(k*self.batchsize,(k+1)*self.batchsize)],
+                                               error_callback = custom_error_callback, chunksize = chunksize)
+                            pool.close()
+                            pool.join()
+                else:
+                    with mp.Pool(processes=processes, initializer=self.init_parallel_CP_pdf, initargs=(
+                            self.MC_cp_configurations, self.n_cp, self.x, self.prob_cp, sum_cp_probs,
+                            self.efficient_memory_management,
+                            print_progress, self.completion_control, multiprocessing, self.n_MC_samples,
+                            self.x[1:-1])) as pool:
+                        pool.starmap_async(self.batched_compute_CP_pdfs, [(m, lock) for m in range(self.n_MC_samples)],
+                                           error_callback = custom_error_callback, chunksize = chunksize)
+                        pool.close()
+                        pool.join()
             print(str(self.completion_control.value) + ' tasks of ' + str(self.n_MC_samples) + ' are executed.')
         else:
             self.init_parallel_CP_pdf(self.MC_cp_configurations, self.n_cp, self.x, self.prob_cp, sum_cp_probs,
