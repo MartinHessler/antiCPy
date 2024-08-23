@@ -585,6 +585,8 @@ class CPSegmentFit:
             self.completion_control = mp.Value('i', 0)
         if not hasattr(self, 'efficient_memory_management'):
             self.efficient_memory_management = False
+        if self.completion_control.value != 0:
+            self.completion_control.value = 0
         if multiprocessing:
             if print_CPU_count:
                 print('CPU count: ', mp.cpu_count())
