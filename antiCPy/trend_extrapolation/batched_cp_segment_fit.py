@@ -210,6 +210,7 @@ class BatchedCPSegmentFit(CPSegmentFit):
             mp_initargs = (self.marginal_log_likelihood, self.batched_D_factor, self.batched_DELTA_D2_factor, self.completion_control,
                             self.efficient_memory_management, multiprocessing)
             rounds = 1
+            round_string = ' round.'
         elif self.efficient_memory_management:
             self.z_prediction_summands = mp.Array('d', self.z_array_size * 2)  # , lock = True)
             self.normalizing_Z_factor = mp.Value('d', 0.0)
