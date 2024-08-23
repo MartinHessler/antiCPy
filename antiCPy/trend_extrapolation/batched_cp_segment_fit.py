@@ -217,8 +217,10 @@ class BatchedCPSegmentFit(CPSegmentFit):
                            self.efficient_memory_management, multiprocessing)
             if prepare_fit:
                 rounds = 2
+                round_string = ' rounds.'
             else:
                 rounds = 1
+                round_string = ' round.'
         first_round = True
         second_round = False
         if multiprocessing:
@@ -258,7 +260,7 @@ class BatchedCPSegmentFit(CPSegmentFit):
                 second_round = True
                 print(str(self.completion_control.value) + ' tasks of ' + str(
                     self.total_batches) + ' are executed in round ' + str(i + 1) + ' of ' + str(
-                    rounds) + ' rounds.')
+                    rounds) + round_string)
                 if prepare_fit and not first_round and self.efficient_memory_management:
                     self.completion_control.value = 0
         else:
