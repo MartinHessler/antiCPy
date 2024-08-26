@@ -276,7 +276,7 @@ class BatchedCPSegmentFit(CPSegmentFit):
                                        self.z_array, self.MC_cp_configurations, self.n_MC_samples, lock, first_round, second_round)
                 first_round = False
                 second_round = True
-        if self.efficient_memory_management and not prepare_fit:
+        if self.efficient_memory_management: #and not prepare_fit:
             if not prepare_fit:
                 self.prob_cp = 1. / self.normalizing_Z_factor.value * np.exp(self.prob_cp[:] + np.log(self.cp_prior_pdf))
             else:
