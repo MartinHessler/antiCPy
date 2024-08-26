@@ -16,7 +16,7 @@ It provides an easy applicable and efficient toolbox
 #. to estimate a non-Markovian two-time scale polynomial system via MCMC or MAP with the option of a priori activated time scale separation,
 #. to estimate the dominant eigenvalue by empiric dynamic modelling approaches like delay embedding and shadow manifolds combined with
    iterated map's linear stability formalism,
-#. extrapolate an early warning signal trend to find the probable transition horizon based on the current data information.
+#. to extrapolate an early warning signal trend to find the probable transition horizon based on the current data information.
 
 Computationally expensive algorithms are implemented both, serially and strongly parallelized to minimize computation times. In case of
 the change point trend extrapolation it involves furthermore algorithms that allow for computing of complicated fits with high numbers
