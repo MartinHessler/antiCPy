@@ -90,15 +90,13 @@ class BatchedCPSegmentFit(CPSegmentFit):
                                       exact_sum_control=exact_sum_control, config_output=config_output)
             one_batch_helper.MC_cp_configurations = configs
         elif not shared_memory_dict['memory_management']:
-            one_batch_helper.MC_cp_configurations = np.roll(MC_cp_configurations, shift=- batch_num * batchsize,
-                                                            axis=0)[:batchsize]
+            one_batch_helper.MC_cp_configurations = MC_cp_configurations[batch_num*batchsize:(batch_num+1)*batchsize,:]
         one_batch_helper.initialize_A_matrices()
         try:
             one_batch_helper.Q_matrix_and_inverse_Q()
         except np.linalg.LinAlgError as err:
             if 'Singular matrix' in str(err):
-                one_batch_helper.MC_cp_configurations = np.roll(MC_cp_configurations,
-                                                                shift=- batch_num * batchsize, axis=0)[:batchsize]
+                one_batch_helper.MC_cp_configurations = MC_cp_configurations[batch_num*batchsize:(batch_num+1)*batchsize,:]
                 one_batch_helper.initialize_A_matrices()
         one_batch_helper.calculate_f0()
         one_batch_helper.calculate_residue()

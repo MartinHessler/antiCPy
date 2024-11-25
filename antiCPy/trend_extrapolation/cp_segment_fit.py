@@ -3,7 +3,7 @@ import multiprocessing as mp
 from scipy.special import binom
 import scipy.integrate as cit
 from itertools import combinations
-from antiCPy.trend_extrapolation.batched_configs_helper.create_configs_helper import construct_start_combinations_helper
+from antiCPy.trend_extrapolation.batched_configs_helper.create_configs_helper import construct_start_combinations_helper, batched_configs
 
 
 class CPSegmentFit:
@@ -39,7 +39,7 @@ class CPSegmentFit:
         is performed as an approximative sum over `num_MC_cp_samples` randomly chosen
         change point configurations.
     :type exact_sum_control: bool
-    :type num_MC_cp_samples: int
+
     :param predict_up_to: Defines the x-horizon of the extrapolation of the fit. Default is ``None``,
         since it depends on the time scale of the given problem. It is saved in the
         attribute ``prediction_horizon``.
@@ -499,12 +499,19 @@ class CPSegmentFit:
     @staticmethod
     def init_parallel_CP_pdf(MC_configs, num_cps, cp_prob_grid, prob_cp, sum_cp_probs_connector, memory_management,
                              print_progress, completion_control_connector, multiprocessing,
-                             num_MC_samples, data):
+                             num_MC_samples, data, batchsize, remainder_batch, prediction_horizon, exact_sum_control,
+                             total_batches, queue_management):
         global init_dict, shared_memory_dict
         init_dict = {}
         init_dict['memory_management'] = memory_management
         init_dict['multiprocessing'] = multiprocessing
         init_dict['num_MC_samples'] = num_MC_samples
+        init_dict['batchsize'] = batchsize
+        init_dict['remainder_batch'] = remainder_batch
+        init_dict['prediction_horizon'] = prediction_horizon
+        init_dict['exact_sum_control'] = exact_sum_control
+        init_dict['total_batches'] = total_batches
+        init_dict['queue_management'] = queue_management
         if not memory_management:
             init_dict['MC_configs'] = MC_configs
         else:
@@ -519,44 +526,57 @@ class CPSegmentFit:
         shared_memory_dict['completion_control_connector'] = completion_control_connector
 
     @staticmethod
-    def batched_compute_CP_pdfs(m, lock):
+    def batched_compute_CP_pdfs(batch_num, lock):
         """
         Contains the working order to compute the marginal ordinal CP pdfs in a batchwise and parallelized manner.
         """
         if init_dict['print_progress']:
-            print('CP configuration ' + str(m + 1) + '/' + str(init_dict['num_MC_samples']))
+            print('Progress: ' + str(batch_num + 1) + '/' + str(init_dict['total_batches']) + ' batches.')
         sum_cp_probs = np.frombuffer(shared_memory_dict['sum_cp_probs_connector'].get_obj()).reshape(
             (init_dict['num_cps'], init_dict['cp_prob_grid'].size))
         completion_control = shared_memory_dict['completion_control_connector']
+        prob_cp_additions = np.zeros(sum_cp_probs.shape)
+        completion_control_additions = 0
+        if batch_num == init_dict['total_batches']-1 and not init_dict['queue_management']:
+            batch_size = init_dict['remainder_batch']
+        else:
+            batch_size = init_dict['batchsize']
         if not init_dict['memory_management']:
             if init_dict['multiprocessing']:
-                with lock:
-                    completion_control.value += 1
+                for i in range(batch_size):
+                    completion_control_additions += 1
                     for j in range(0, init_dict['num_cps']):
-                        sum_cp_probs[j, init_dict['cp_prob_grid'] == init_dict['MC_configs'][m, j + 1]] += init_dict['prob_cp'][m]
+                        prob_cp_additions[j, init_dict['cp_prob_grid'] == init_dict['MC_configs'][batch_num*init_dict['batchsize']+i, j + 1]] += init_dict['prob_cp'][batch_num*init_dict['batchsize']+i]
+                with lock:
+                    completion_control.value += completion_control_additions
+                    sum_cp_probs += prob_cp_additions
             else:
                 completion_control.value += 1
                 for j in range(0, init_dict['num_cps']):
-                    sum_cp_probs[j, init_dict['cp_prob_grid'] == init_dict['MC_configs'][m, j + 1]] += \
-                    init_dict['prob_cp'][m]
+                    sum_cp_probs[j, init_dict['cp_prob_grid'] == init_dict['MC_configs'][batch_num, j + 1]] += \
+                    init_dict['prob_cp'][batch_num]
+
         elif init_dict['memory_management']:
-            current_MC_config = np.array(
-                construct_start_combinations_helper(init_dict['data'], init_dict['total_data'], init_dict['num_cps'],
-                                                    m + 1))
             if init_dict['multiprocessing']:
-                with lock:
-                    completion_control.value += 1
+                configs = np.array(batched_configs(batch_num, batch_size, init_dict['cp_prob_grid'], init_dict['prediction_horizon'],
+                                                    init_dict['num_cps'], exact_sum_control=init_dict['exact_sum_control'], config_output = False))
+                for i in range(batch_size):
+                    completion_control_additions += 1
                     for j in range(0, init_dict['num_cps']):
-                        sum_cp_probs[j, init_dict['cp_prob_grid'] == current_MC_config[j]] += init_dict['prob_cp'][m]
+                        prob_cp_additions[j, init_dict['cp_prob_grid'] == configs[i, j + 1]] += init_dict['prob_cp'][batch_num*init_dict['batchsize']+i]
+                with lock:
+                    completion_control.value += completion_control_additions
+                    sum_cp_probs += prob_cp_additions
             else:
+                current_MC_config = np.array(construct_start_combinations_helper(init_dict['data'], init_dict['total_data'], init_dict['num_cps'], batch_num+1))
                 completion_control.value += 1
                 for j in range(0, init_dict['num_cps']):
-                    sum_cp_probs[j, init_dict['cp_prob_grid'] == current_MC_config[j]] += init_dict['prob_cp'][m]
+                    sum_cp_probs[j, init_dict['cp_prob_grid'] == current_MC_config[j]] += init_dict['prob_cp'][batch_num]
 
 
 
     def compute_CP_pdfs(self, multiprocessing=True, num_processes='half', print_CPU_count=False, print_progress=True,
-                        queue_management = False):
+                        queue_management = False, num_pool_starts=None):
         """
         Computes the marginal ordinal CP pdfs and stores them in the attribute ``self.CP_pdfs``.
 
@@ -578,7 +598,11 @@ class CPSegmentFit:
         the pool of workers is closed and a new one is initialized. This avoids excessive memory allocation by preparing all
         jobs at once in a multiprocessing pool. It is slower than the latter, but saves memory. If memory is not a problem,
         stick to the default ``queue_management=False``.
+
         :type queue_management: bool
+
+        :param num_pool_starts: Total number of multiprocessing pool starts.
+        :type num_pool_starts: int
         """
         sum_cp_probs = mp.Array('d', self.n_cp * self.N)
         if not hasattr(self, 'completion_control'):
@@ -606,32 +630,65 @@ class CPSegmentFit:
             chunksize, extra = divmod(self.total_batches, processes * 4)
             if extra:
                 chunksize += 1
-            with mp.Manager() as manager:
-                lock = manager.Lock()
-                if queue_management:
-                    for k in range(self.total_batches):
+
+            if queue_management:
+                if self.num_of_cp_configs % self.batchsize != 0:
+                    print('ERROR: Not all CP configurations are considered during the PDF marginalization. Adapt the batchsize to obtain (num_of_cp_configs mod batchsize) = 0.')
+                    exit(1)
+                if self.total_batches % (num_pool_starts) == 0:
+                    queue_batchsize = int(self.total_batches/num_pool_starts)
+                    remainder_batch = queue_batchsize
+                else:
+                    remainder = self.total_batches%num_pool_starts
+                    queue_batchsize = int((self.total_batches-remainder)/num_pool_starts)
+                    remainder_batch = queue_batchsize+remainder
+                with mp.Manager() as manager:
+                    lock = manager.Lock()
+                    for k in range(num_pool_starts):
+                        if k==num_pool_starts-1:
+                            pool_start_index = k * queue_batchsize
+                            pool_end_index = k * queue_batchsize + remainder_batch
+                        else:
+                            pool_start_index = k * queue_batchsize
+                            pool_end_index = (k+1) * queue_batchsize
                         with mp.Pool(processes=processes, initializer=self.init_parallel_CP_pdf, initargs=(
-                        self.MC_cp_configurations, self.n_cp, self.x, self.prob_cp, sum_cp_probs, self.efficient_memory_management,
-                        print_progress, self.completion_control, multiprocessing, self.n_MC_samples, self.x[1:-1])) as pool:
-                            pool.starmap_async(self.batched_compute_CP_pdfs, [(m, lock) for m in np.arange(k*self.batchsize,(k+1)*self.batchsize)],
+                                    self.MC_cp_configurations, self.n_cp, self.x, self.prob_cp, sum_cp_probs, self.efficient_memory_management,
+                                    print_progress, self.completion_control, multiprocessing, self.n_MC_samples, self.x[1:-1], self.batchsize, remainder_batch,
+                                    self.prediction_horizon, self.exact_sum_control, self.total_batches, queue_management)) as pool:
+
+                            pool.starmap_async(self.batched_compute_CP_pdfs, [(m, lock) for m in np.arange(pool_start_index, pool_end_index)],
                                                error_callback = custom_error_callback, chunksize = chunksize)
                             pool.close()
                             pool.join()
+            else:
+                if self.num_of_cp_configs%processes==0:
+                    self.batchsize = int(self.num_of_cp_configs/processes)
+                    remainder_batch = 0
                 else:
+                    remainder = self.num_of_cp_configs%processes
+                    self.batchsize = int((self.num_of_cp_configs-remainder)/processes)
+                    remainder_batch = self.batchsize+remainder
+                self.total_batches = processes
+                with mp.Manager() as manager:
+                    lock = manager.Lock()
                     with mp.Pool(processes=processes, initializer=self.init_parallel_CP_pdf, initargs=(
                             self.MC_cp_configurations, self.n_cp, self.x, self.prob_cp, sum_cp_probs,
                             self.efficient_memory_management,
                             print_progress, self.completion_control, multiprocessing, self.n_MC_samples,
-                            self.x[1:-1])) as pool:
-                        pool.starmap_async(self.batched_compute_CP_pdfs, [(m, lock) for m in range(self.n_MC_samples)],
+                            self.x[1:-1], self.batchsize, remainder_batch, self.prediction_horizon, self.exact_sum_control,
+                            self.total_batches, queue_management)) as pool:
+                        pool.starmap_async(self.batched_compute_CP_pdfs, [(batch_num, lock) for batch_num in range(self.total_batches)],
                                            error_callback = custom_error_callback, chunksize = chunksize)
                         pool.close()
                         pool.join()
-            print(str(self.completion_control.value) + ' tasks of ' + str(self.n_MC_samples) + ' are executed.')
+
+            print(str(self.completion_control.value) + ' tasks of ' + str(self.num_of_cp_configs) + ' are executed.')
         else:
+            remainder_batch_dummy = None
             self.init_parallel_CP_pdf(self.MC_cp_configurations, self.n_cp, self.x, self.prob_cp, sum_cp_probs,
                                       self.efficient_memory_management, print_progress, self.completion_control,
-                                      multiprocessing, self.n_MC_samples, self.x[1:-1])
+                                      multiprocessing, self.n_MC_samples, self.x[1:-1], self.batchsize, remainder_batch_dummy, self.prediction_horizon,
+                                      self.exact_sum_control, self.total_batches, queue_management)
             for m in range(self.n_MC_samples):
                 lock = None
                 self.batched_compute_CP_pdfs(m, lock)
