@@ -641,7 +641,7 @@ class NonMarkovEstimation(LangevinEstimation):
                     thin = int(np.max(tau))
                 else:
                     thin = 1
-            flat_samples = sampler.get_chain(discard=self.nburn, thin=np.max([1,thin]), flat=True)  # thin= int(np.max(tau))
+            flat_samples = sampler.get_chain(discard=self.nburn, thin=np.max([1,thin]), flat=True)
             if print_AC_tau:
                 print('tau: ', tau)
         self.theta_array = np.zeros((self.ndim, flat_samples[:, 0].size))
@@ -665,7 +665,6 @@ class NonMarkovEstimation(LangevinEstimation):
                                            self.slow_process, print_time_scale_info)
         res = optimize.minimize(self.neg_log_posterior, x0=self.max_likelihood_starting_guesses, method='Nelder-Mead')
         MAP_results = res['x']
-        # print('MAP results: ', MAP_results)
         self.starting_guesses = np.ones((self.nwalkers, self.ndim))
         for i in range(self.ndim):
             self.starting_guesses[:, i] = MAP_results[i] * (0.5 + np.random.rand(self.nwalkers))
@@ -873,10 +872,8 @@ class NonMarkovEstimation(LangevinEstimation):
         self.drift_slope[3] = slope_credibility_percentiles[0]
         self.drift_slope[4] = slope_credibility_percentiles[1]
         X_coupling_samples = self.X_coupling_density_obj.resample(size=n_X_coupling_samples)
-        # print('X coupling term estimates: ', X_coupling_samples)
         X_coupling_level = X_coupling_grid[
             self.X_coupling_density_obj(X_coupling_grid) == np.max(self.X_coupling_density_obj(X_coupling_grid))]
-        # print('X coupling level estimate: ', X_coupling_level)
         if X_coupling_level.size == 1:
             self.X_coupling_estimate[0] = X_coupling_level
         else:
@@ -892,9 +889,7 @@ class NonMarkovEstimation(LangevinEstimation):
         if self.Y_model == 'Ornstein-Uhlenbeck noise':
             self.OU_kernel_density_obj = cpy.gaussian_kde(self.theta_array[-1, :], bw_method='silverman')
             self.OU_param_samples = self.OU_kernel_density_obj.resample(size=n_OU_param_samples)
-            # print('OU param estimates: ', self.OU_param_samples)
             OU_param = OU_grid[self.OU_kernel_density_obj(OU_grid) == np.max(self.OU_kernel_density_obj(OU_grid))]
-            # print('OU param estimate: ', OU_param)
             if OU_param.size == 1:
                 self.OU_param_estimate[0] = OU_param
             else:
@@ -1155,7 +1150,7 @@ class NonMarkovEstimation(LangevinEstimation):
                                        n_X_coupling_samples, cred_percentiles, print_AC_tau, ignore_AC_error,
                                        thinning_by, print_progress, print_details, MCMC_parallelization_method,
                                        num_processes, num_chop_chains])
-            ani.save(ani_save_name + '.mp4', writer=writer)  # , writer = writer
+            ani.save(ani_save_name + '.mp4', writer=writer)
         if save:
             np.save(slope_save_name + '.npy', self.slope_storage)
             np.save(noise_level_save_name + '.npy', self.noise_level_storage)
@@ -1602,7 +1597,7 @@ class NonMarkovEstimation(LangevinEstimation):
             raise ValueError("invalid dimensions for 1D autocorrelation function")
         n = __class__.next_pow_two(len(x))
 
-        # Compute the FFT and then (from that) the auto-correlation function
+        # Compute the FFT and then (from that) the autocorrelation function
         f = np.fft.fft(x - np.mean(x), n=2 * n)
         acf = np.fft.ifft(f * np.conjugate(f))[: len(x)].real
         acf /= 4 * n

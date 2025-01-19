@@ -105,7 +105,7 @@ def false_NN(data, index_shift=1, start_order = 1, end_order = 15, NN_threshold 
 		state_space_m_plus_1 = embedding_attractor_reconstruction(data, m + 1, index_shift)
 		state_space_m_T = np.transpose(state_space_m)
 		state_space_m_plus_1_T = np.transpose(state_space_m_plus_1)
-		nbrs_model_m = NearestNeighbors(n_neighbors=2, algorithm='ball_tree', p = np.inf).fit(state_space_m_T)
+		nbrs_model_m = NearestNeighbors(n_neighbors=2, algorithm='ball_tree', p=np.inf).fit(state_space_m_T)
 		max_norm_dists_m, NN_indices_m = nbrs_model_m.kneighbors(state_space_m_T)
 		max_norm_dists_m_plus_1_of_NN_m = np.zeros(state_space_m_T[:, 0].size - index_shift)
 		heaviside_arg_false_NN = np.zeros(max_norm_dists_m_plus_1_of_NN_m.size)
@@ -160,7 +160,7 @@ def avg_distance_from_diagonal(data, E, start_lag = 1, end_lag = 10, image = Fal
 		for j in range(1,E):
 			distances_squared[j,:] = (lagged_data[j,:] - lagged_data[0,:])**2
 		S_tau[i-1] = 1./ M * np.sum(np.sqrt(np.sum(distances_squared, axis =0)))
-		#print(S_tau)
+
 
 	if image == True:
 		x_axis_tau = np.arange(start_lag, end_lag + 1, 1)

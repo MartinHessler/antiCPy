@@ -93,7 +93,7 @@ class BinningLangevinEstimation(LangevinEstimation):
 		"""
 		Calculates the negative logarithmic likelihood function of a bin in the binning data approach.
 		"""
-		#Log-likelihood-function for bin-wise estimation based on statistical pars
+
 		var = pars[1]**2 * dt
 		ML_theta = num_bin_members / 2. * (np.log(2 * np.pi * var)
 			+ (bin_incr_mean_squared - 2. * pars [0] * dt * bin_incr_mean

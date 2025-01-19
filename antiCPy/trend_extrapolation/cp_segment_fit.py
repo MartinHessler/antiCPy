@@ -272,7 +272,7 @@ class CPSegmentFit:
         self.Q_inverse = np.array(mp.RawArray('d', self.n_MC_samples * (self.n_cp + 2) * (self.n_cp + 2))).reshape(
             self.n_MC_samples, self.n_cp + 2, self.n_cp + 2)
         for m in range(self.n_MC_samples):
-            # Note that Q_inverse is not inverted yet after the next line
+            # Note that Q_inverse is not inverted yet
             self.Q_inverse[m, :, :] = np.dot(np.transpose(self.A_matrix[m, :, :]), self.A_matrix[m, :, :])
             if save_Q_matrix:
                 self.Q_matrix[m, :, :] = self.Q_inverse[m, :, :]

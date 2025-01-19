@@ -210,7 +210,7 @@ class BatchedCPSegmentFit(CPSegmentFit):
             rounds = 1
             round_string = ' round.'
         elif self.efficient_memory_management:
-            self.z_prediction_summands = mp.Array('d', self.z_array_size * 2)  # , lock = True)
+            self.z_prediction_summands = mp.Array('d', self.z_array_size * 2)
             self.normalizing_Z_factor = mp.Value('d', 0.0)
             mp_initargs = (self.prob_cp, self.z_prediction_summands, self.normalizing_Z_factor, self.completion_control,
                            self.efficient_memory_management, multiprocessing)
@@ -274,7 +274,7 @@ class BatchedCPSegmentFit(CPSegmentFit):
                                        self.z_array, self.MC_cp_configurations, self.n_MC_samples, lock, first_round, second_round)
                 first_round = False
                 second_round = True
-        if self.efficient_memory_management: #and not prepare_fit:
+        if self.efficient_memory_management:
             if not prepare_fit:
                 self.prob_cp = 1. / self.normalizing_Z_factor.value * np.exp(self.prob_cp[:] + np.log(self.cp_prior_pdf))
             else:

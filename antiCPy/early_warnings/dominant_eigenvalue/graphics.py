@@ -306,10 +306,8 @@ def plot_avg_DD(data, start_lag = 1, end_lag = 10, lag_sampling = 1, label = 'un
 	:return: Plot of a figure with the results of the average distance from diagonal algorithm. The design is partly possible to choose and the figure can be optionally saved.
 	"""
 	x_axis_tau = np.arange(start_lag, end_lag + 1, lag_sampling)
-	# print(x_axis_tau)
 	ax = plt.subplot(111)
 	ax.plot(x_axis_tau, data, 'bv-', label = label)
-	#ax.plot(x_axis_tau, S_tau_henon_cutted, 'gv-', label = 'average distance from diagonal  \n(pre-bifurcation regime)') #### Nur fuer Henon!
 	plt.xlim(0, end_lag)
 	plt.xlabel(r'time lag $ \tau $ [' + lag_unit + ']', fontsize = 18)
 	plt.ylabel(r'$\langle S\rangle$',fontsize = 18)

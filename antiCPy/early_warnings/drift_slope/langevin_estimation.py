@@ -324,7 +324,6 @@ class LangevinEstimation(RocketFastResilienceEstimation):
                         prior_range[2, 0] > theta[2] > prior_range[2, 1]) and (
                         prior_range[3, 0] > theta[3] > prior_range[3, 1]) and (
                         prior_range[4, 0] > theta[4] > prior_range[4, 1]):
-                    # print('Check_prior!')
                     return ((-3. / 2.) * np.log(1 + theta[1] ** 2) - np.log(theta[4])) + np.log(
                         cpy.norm.pdf(theta[2], loc=0, scale=scales[0])) + np.log(
                         cpy.norm.pdf(theta[3], loc=0, scale=scales[1]))
@@ -483,10 +482,7 @@ class LangevinEstimation(RocketFastResilienceEstimation):
                        print_progress, ignore_AC_error, thinning_by, print_AC_tau):
         for (key, val) in chop_chain_callables.items():
             dview[key] = val
-        # dview['ndim'] = int(ndim)
         dview['nburn'] = int(nburn)
-        # print(dview["nburn"])
-        print(len(dview))
         if ignore_AC_error:
             dview["stepspernode"] = int(mh.ceil((nsteps - nburn) / len(dview) + nburn))
         else:
@@ -498,8 +494,6 @@ class LangevinEstimation(RocketFastResilienceEstimation):
         dview["thinning_by"] = thinning_by
         dview["print_AC_tau"] = print_AC_tau
         dview["tau"] = 0
-        # tau = 1
-        # dview['tau'] = tau
         dview.execute("import numpy as np\n" +
                       "import scipy.stats as cpy\n" +
                       "sampler.run_mcmc(starting_guesses, stepspernode, rstate0=np.random.get_state())\n" +
@@ -511,7 +505,6 @@ class LangevinEstimation(RocketFastResilienceEstimation):
                       "	samples = sampler.get_chain()")
         if print_AC_tau:
             print('tau: ', dview["tau"])
-        #		"samples = sampler.chain[::int(np.max(tau)), nburn:, :].reshape((-1, ndim))")
         return dview.gather("samples")
 
     @staticmethod
@@ -523,8 +516,8 @@ class LangevinEstimation(RocketFastResilienceEstimation):
         density estimate. The method needs to be static. Some variables have to be declared global in
         to guarantee the functionality of the animation procedure.
         '''
-        global fig, axs, sl_gr_animation, noise_gr_animation, animation_count, animation_time, animation_data  # vspan_window, noise_pdf_line, drift_slope_line, noise_line, CB_slope_I, CB_slope_II, CB_noise_I, CB_noise_II
-        axs[0, 0].plot(animation_time, animation_data, color='C0')  # , color = 'b'
+        global fig, axs, sl_gr_animation, noise_gr_animation, animation_count, animation_time, animation_data
+        axs[0, 0].plot(animation_time, animation_data, color='C0')
         axs[0, 0].set_xlim(animation_time[0], animation_time[-1])
         if crit_poi != None:
             axs[0, 0].axvline(crit_poi, ls=':', color='r')
@@ -570,7 +563,6 @@ class LangevinEstimation(RocketFastResilienceEstimation):
         CB_noise_II = axs[1, 1].fill_between([], [], [], alpha=0.4, color='orange')
         return vspan_window, noise_pdf_line, drift_slope_line, noise_line, CB_slope_I, CB_slope_II, CB_noise_I, CB_noise_II
 
-    # performs the animation
 
     def animation(self, i, slope_grid, noise_grid, nwalkers, nsteps, nburn, n_joint_samples, n_slope_samples,
                   n_noise_samples, cred_percentiles, print_AC_tau, ignore_AC_error, thinning_by, print_progress,
@@ -953,7 +945,7 @@ class LangevinEstimation(RocketFastResilienceEstimation):
                                                      gauss_filter_mode,gauss_filter_sigma, gauss_filter_order,
                                                      gauss_filter_cval, gauss_filter_truncate, plot_detrending,
                                                      MCMC_parallelization_method, num_processes, num_chop_chains])
-            ani.save(ani_save_name + '.mp4', writer=writer)  # , writer = writer
+            ani.save(ani_save_name + '.mp4', writer=writer)
         if save:
             np.save(slope_save_name + '.npy', self.slope_storage)
             np.save(noise_level_save_name + '.npy', self.noise_level_storage)
@@ -1203,14 +1195,14 @@ class LangevinEstimation(RocketFastResilienceEstimation):
             map_bpci_bisection = -1
             while self._confidence_helper(map_bpci_bisection, i) >= 0:
                 map_bpci_bisection -= 1.
-            # b i s e c t i o n
+            # bisection
             MAP_CI[i, 0] = optimize.bisect(f=self._confidence_helper, a=map_bpci_bisection, b=0.,
                                            args=(i), xtol=1e-3)
             # find upper bound for bisection root finding algorithm
             map_bpci_bisection = 1
             while self._confidence_helper(map_bpci_bisection, i) > 0:
                 map_bpci_bisection += 1.
-            # b i s e c t i o n
+            # bisection
             MAP_CI[i, 1] = optimize.bisect(f=self._confidence_helper, a=0., b=map_bpci_bisection,
                                            args=(i), xtol=1e-3)
             if printbool:

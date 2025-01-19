@@ -135,8 +135,8 @@ def detrend_fct(gendata, detrend_mode = 'linear', gauss_filter_mode = 'reflect',
 	:type gauss_filter_order: Integer.
 	:type gauss_filter_cval: Float.
 	:type gauss_filter_truncate: Float.
-	:return: With ``detrend_mode = 'linear'`` the linear detrended data is returned in form of a one dimensional numpy array. With ``detrend_mode = 'gaussian_kernel'`` the modeled slow trend of the Gaussian filter is subtracted from the data. The detrended version is returned in form of a one dimensional numpy array as first arguement. In a second arguement the estimated slow trend is returned in form of a one dimensional numpy array.
-	:rtype: All possible return objects are one dimensional numpy arrays.
+	:return: With ``detrend_mode = 'linear'`` the linear detrended data is returned in form of a one-dimensional numpy array. With ``detrend_mode = 'gaussian_kernel'`` the modeled slow trend of the Gaussian filter is subtracted from the data. The detrended version is returned in form of a one-dimensional numpy array.
+	:rtype: All possible return objects are one-dimensional numpy arrays.
 	"""
 	if detrend_mode == 'linear':
 		degree = 1
@@ -146,4 +146,4 @@ def detrend_fct(gendata, detrend_mode = 'linear', gauss_filter_mode = 'reflect',
 	if detrend_mode == 'gauss_kernel':
 		slow_trend = gaussian_filter(gendata, gauss_filter_sigma, order = gauss_filter_order, output=None, mode= gauss_filter_mode, cval= gauss_filter_cval, truncate= gauss_filter_truncate)
 		detrended_data = gendata - slow_trend
-		return detrended_data# , slow_trend
+		return detrended_data
