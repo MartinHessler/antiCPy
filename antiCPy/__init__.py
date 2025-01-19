@@ -18,6 +18,6 @@ if sys.version_info < (3, 6, 0):
         'The installed Python version reached its end-of-life. Please upgrade to a newer Python version for receiving '
         'further antiCPy updates.', Warning)
 
-__version__ = '0.0.10'
+__version__ = '1.0.0'
 
 __author__ = 'Martin Heßler'
