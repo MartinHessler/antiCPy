@@ -72,6 +72,6 @@ New Journal of Physics 24, 063021 (Dec. 2021). DOI: 10.1088/1367-2630/ac46d4.
 
 Further publications
 ====================
-Further research contributions not directly related to **antiCPy**:
+Further research contributions indirectly related to **antiCPy**:
 - the publication [Anticipating the occurrence and type of critical transitions](https://www.science.org/doi/10.1126/sciadv.abq4558). In:
 Science Advances 9.1, eabq4558 (Jan. 2023). doi: 10.1126/sciadv.abq4558.
