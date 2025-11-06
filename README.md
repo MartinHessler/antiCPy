@@ -24,6 +24,12 @@ for research purposes.
 
 ![An illustration of the drift slope procedure.](https://github.com/MartinHessler/antiCPy/blob/main/images/compound_BLE_illustration.jpg?raw=true)
 
+Quickstart
+==========
+
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/MartinHessler/antiCPy/HEAD?filepath=examples/Quickstart_Resilience_and_Change_Point_Analysis_with_antiCPy.ipynb)
+
+
 Citing antiCPy
 ==============
 
