@@ -26,7 +26,7 @@ for research purposes.
 
 Quickstart
 ==========
-
+Launch the interactive tutorial in your browser using Binder:
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/MartinHessler/antiCPy/HEAD?filepath=examples/Quickstart_Resilience_and_Change_Point_Analysis_with_antiCPy.ipynb)
 
 
